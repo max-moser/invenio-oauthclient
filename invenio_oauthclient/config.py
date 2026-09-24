@@ -317,6 +317,11 @@ setting ``remote_app`` in your remote application configuration.
 
 from invenio_oauthclient.utils import _create_registrationform
 
+from .authlib import KeycloakClient
+
+OAUTHCLIENT_CLIENTS = [
+]
+
 OAUTHCLIENT_REMOTE_APPS = {}
 """Configuration of remote applications."""
 

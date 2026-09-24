@@ -69,6 +69,12 @@ invenio_oauthclient = "invenio_oauthclient.tasks"
 [project.entry-points."invenio_db.alembic"]
 invenio_oauthclient = "invenio_oauthclient:alembic"
 
+[project.entry-points."invenio_base.api_converters"]
+remote_app = "invenio_oauthclient.authlib:RemoteAppConverter"
+
+[project.entry-points."invenio_base.converters"]
+remote_app = "invenio_oauthclient.authlib:RemoteAppConverter"
+
 [project.entry-points."invenio_db.models"]
 invenio_oauthclient = "invenio_oauthclient.models"
 
