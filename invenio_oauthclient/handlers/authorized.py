@@ -31,7 +31,6 @@ from ..utils import create_csrf_disabled_registrationform, fill_form
 from .token import (
     get_session_next_url,
     response_token_setter,
-    token_getter,
     token_session_key,
     token_setter,
 )
@@ -94,7 +93,8 @@ def authorized_handler(resp, remote, *args, **kwargs):
         user = oauth_get_user(
             remote.consumer_key,
             account_info=account_info,
-            access_token=token_getter(remote)[0],
+            # access_token=token_getter(remote)[0],
+            access_token=None,
         )
         if user is None:
             # User not found, this is the first login. Register the user.
@@ -200,7 +200,8 @@ def extra_signup_handler(remote, form, *args, **kwargs):
         raise OAuthClientAlreadyAuthorized()
 
     # Retrieve token from session
-    oauth_token = token_getter(remote)
+    # oauth_token = token_getter(remote)
+    oauth_token = None
     if not oauth_token:
         raise OAuthClientTokenNotFound()
     access_token, secret, refresh_token, expires = oauth_token

@@ -13,7 +13,7 @@ from ..errors import (
     OAuthClientMustRedirectLogin,
     OAuthClientTokenNotFound,
 )
-from .token import token_getter, token_session_key
+from .token import token_session_key
 
 
 def can_extra_signup(f):
@@ -32,7 +32,8 @@ def can_extra_signup(f):
         remote = args[0]
         # Make sure that there is an OAuth token in the session, to ensure that
         # we are in the OAuth flow
-        oauth_token = token_getter(remote)
+        # oauth_token = token_getter(remote)
+        oauth_token = None
         if not oauth_token:
             raise OAuthClientTokenNotFound()
 

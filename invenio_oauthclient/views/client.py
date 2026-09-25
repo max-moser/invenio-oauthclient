@@ -34,6 +34,7 @@ rest_blueprint = Blueprint(
 )
 
 
+# THIS IS IN USE
 @blueprint.route("/login")
 def auto_redirect_login(*args, **kwargs):
     """Handles automatic redirect to external auth service.
@@ -54,16 +55,9 @@ def auto_redirect_login(*args, **kwargs):
         "OAUTHCLIENT_AUTO_REDIRECT_TO_EXTERNAL_LOGIN", False
     )
     would_redirect = auto_redirect_enabled and not local_login_enabled
-    remote_apps = list(current_oauthclient.oauth.remote_apps)
-    remote_app_configs = current_app.config["OAUTHCLIENT_REMOTE_APPS"]
-
+    remote_apps = current_oauthclient.clients.values()
     visible_remote_apps = [
-        remote_app
-        for remote_app in remote_apps
-        if not (remote_app_config := remote_app_configs.get(remote_app, {})).get(
-            "hide", False
-        )
-        and not remote_app_config.get("link_only", False)
+        app for app in remote_apps if not app.hidden and not app.link_only
     ]
 
     if would_redirect and len(visible_remote_apps) == 1:
@@ -75,72 +69,55 @@ def auto_redirect_login(*args, **kwargs):
         next_url = request.args.get("next")
         if next_url:
             redirect_args["next"] = next_url
-        url = url_for("invenio_oauthclient.login", **redirect_args)
+        url = url_for("invenio_authlib_client.login", **redirect_args)
         return redirect(url)
 
     else:
         return base_login(*args, **kwargs)
 
 
-def _login(remote_app, authorized_view_name):
-    """Send user to remote application for authentication."""
-    oauth = current_oauthclient.oauth
-    if remote_app not in oauth.remote_apps:
-        raise OAuthRemoteNotFound()
+# def _login(remote_app, authorized_view_name):
+#     """Send user to remote application for authentication."""
+#     if remote_app not in current_oauthclient.clients:
+#         raise OAuthRemoteNotFound()
+#
+#     # Get redirect target in safe manner.
+#     next_param = get_safe_redirect_target(arg="next")
+#
+#     # Redirect URI - must be registered in the remote service.
+#     callback_url = url_for(
+#         authorized_view_name, remote_app=remote_app, _external=True, _scheme="https"
+#     )
+#
+#     # Create a JSON Web Token that expires after OAUTHCLIENT_STATE_EXPIRES
+#     # seconds.
+#     state_token = serializer.dumps(
+#         {
+#             "app": remote_app,
+#             "next": next_param,
+#             "sid": _create_identifier(),
+#         }
+#     )
+#     return oauth.remote_apps[remote_app].authorize(
+#         callback=callback_url,
+#         state=state_token,
+#     )
+#
 
-    # Get redirect target in safe manner.
-    next_param = get_safe_redirect_target(arg="next")
-
-    # Redirect URI - must be registered in the remote service.
-    callback_url = url_for(
-        authorized_view_name, remote_app=remote_app, _external=True, _scheme="https"
-    )
-
-    # Create a JSON Web Token that expires after OAUTHCLIENT_STATE_EXPIRES
-    # seconds.
-    state_token = serializer.dumps(
-        {
-            "app": remote_app,
-            "next": next_param,
-            "sid": _create_identifier(),
-        }
-    )
-    return oauth.remote_apps[remote_app].authorize(
-        callback=callback_url,
-        state=state_token,
-    )
-
-
-@blueprint.route("/login/<remote_app>/")
-def login(remote_app):
-    """Send user to remote application for authentication."""
-    if (
-        current_app.config["OAUTHCLIENT_REMOTE_APPS"]
-        .get(remote_app, {})
-        .get("hide", False)
-    ):
-        abort(404)
-
-    try:
-        return _login(remote_app, ".authorized")
-    except OAuthRemoteNotFound:
-        return abort(404)
-
-
-@rest_blueprint.route("/login/<remote_app>/")
-def rest_login(remote_app):
-    """Send user to remote application for authentication."""
-    if (
-        current_app.config["OAUTHCLIENT_REST_REMOTE_APPS"]
-        .get(remote_app, {})
-        .get("hide", False)
-    ):
-        abort(404)
-
-    try:
-        return _login(remote_app, ".rest_authorized")
-    except OAuthRemoteNotFound:
-        abort(404)
+# @rest_blueprint.route("/login/<remote_app:remote_app>/")
+# def rest_login(remote_app):
+#     """Send user to remote application for authentication."""
+#     if (
+#         current_app.config["OAUTHCLIENT_REST_REMOTE_APPS"]
+#         .get(remote_app, {})
+#         .get("hide", False)
+#     ):
+#         abort(404)
+#
+#     try:
+#         return _login(remote_app, ".rest_authorized")
+#     except OAuthRemoteNotFound:
+#         abort(404)
 
 
 def _authorized(remote_app=None):

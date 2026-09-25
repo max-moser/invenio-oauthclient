@@ -8,8 +8,10 @@ from flask import Blueprint, flash, redirect, url_for
 from flask_security import login_user
 from werkzeug.routing import BaseConverter, ValidationError
 
-from .oauth import oauth_get_user
+from .handlers.token import set_session_next_url
+from .oauth import oauth_get_user, oauth_authenticate
 from .proxies import current_oauthclient
+from .utils import get_safe_redirect_target
 
 bp = Blueprint("invenio_authlib_client", __name__)
 
@@ -64,7 +66,7 @@ class ServerMetadata:
     client_kwargs: dict
 
 
-class BaseClient:
+class RemoteApp:
     def __init__(
         self,
         name: str,
@@ -72,15 +74,20 @@ class BaseClient:
         client_id: str,
         client_secret: str,
         scope: list[str] | str,
+        hidden: bool = False,
+        link_only: bool = False,
     ):
         self.name = name
         self.client_id = client_id
         self.client_secret = client_secret
         self.scope = scope if isinstance(scope, str) else " ".join(scope)
+        self.hidden = hidden
+        self.link_only = link_only
 
         self.server_metadata_url = None
         self.server_metadata = None
         self.client = None
+        self.registration_form = None
 
         if isinstance(server_metadata, str):
             self.server_metadata_url = server_metadata
@@ -88,6 +95,7 @@ class BaseClient:
             self.server_metadata = server_metadata
 
     def register(self, oauth: OAuth) -> FlaskOAuth2App:
+        # TODO use server_metadata if not server_metadata_url
         self.client = oauth.register(
             self.name,
             overwrite=False,
@@ -103,7 +111,7 @@ class BaseClient:
     def parse_user_info(self, user_info: dict) -> dict: ...
 
 
-class KeycloakClient(BaseClient):
+class KeycloakRemoteApp(RemoteApp):
     def parse_user_info(self, user_info: dict) -> dict:
         user_info = info_serializer_handler(self, user_info, user_info)
         return user_info
@@ -112,40 +120,57 @@ class KeycloakClient(BaseClient):
 class RemoteAppConverter(BaseConverter):
     """Endpoint converter validating that the remote app is known."""
 
-    def to_python(self, value: str) -> BaseClient:
+    def to_python(self, value: str) -> RemoteApp:
         try:
             return current_oauthclient.clients[value]
         except KeyError:
             raise ValidationError(f"{value} is not a known remote app")
 
-    def to_url(self, value: BaseClient|str) -> str:
-        if isinstance(value, BaseClient):
+    def to_url(self, value: RemoteApp | str) -> str:
+        if isinstance(value, RemoteApp):
             return value.name
         return value
 
 
 @bp.route("/login/<remote_app:remote_app>")
-def oauth_login(remote_app: BaseClient):
+def login(remote_app: RemoteApp):
+    """Start the authentication workflow with the given remote app."""
+    next_param = get_safe_redirect_target(arg="next")
+    set_session_next_url(remote_app.name, next_param)
+
     redirect_url = url_for(".oauth_authorize", remote_app=remote_app, _external=True)
     return remote_app.client.authorize_redirect(redirect_url)
 
 
 @bp.route("/oauth/authorized/<remote_app:remote_app>")
-def oauth_authorize(remote_app: BaseClient):
+def oauth_authorize(remote_app: RemoteApp):
+    # Note: Authlib takes care of ID token validation (aud, iss, etc.)
     token = remote_app.client.authorize_access_token()
-    user_info = remote_app.parse_user_info(token["userinfo"])
-    user = oauth_get_user(remote_app.name, user_info, token)
-    if user:
-        login_user(user)
+
+    # The initial ID token may hold very limited information, so we fetch more
+    # user info from the endpoint and perform a quick sanity check
+    remote_user_info = remote_app.client.userinfo()
+    assert remote_user_info["sub"] == token["userinfo"]["sub"]
+    user_info = remote_app.parse_user_info({**token["userinfo"], **remote_user_info})
+
+    if user := oauth_get_user(remote_app.name, user_info, token):
+        oauth_authenticate(remote_app.name, user)
     else:
         flash(f"User not found for user info: {user_info}")
-        flash(f"User not found for token: {token}")
 
     # TODO next url
     return redirect("/")
 
 
+@bp.route("/signup/<remote_app:remote_app>", methods=["GET", "POST"])
+def register(remote_app: RemoteApp):
+    # TODO pull token & pre-filled form from session
+    remote_app.registration_form
+
+
+
 def fetch_token(name, request):
+    # TODO check what this does again
     session_key = token_session_key(name)
 
     if session_key not in session and current_user.is_authenticated:

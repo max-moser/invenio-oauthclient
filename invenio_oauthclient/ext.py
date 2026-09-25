@@ -18,7 +18,7 @@ from invenio_theme.proxies import current_theme_icons
 from invenio_oauthclient._compat import monkey_patch_werkzeug
 
 from . import config, handlers
-from .authlib import BaseClient, bp, fetch_token
+from .authlib import RemoteApp, bp, fetch_token
 from .utils import (
     load_user_role_needs,
     obj_or_import_string,
@@ -74,7 +74,7 @@ class _OAuthClientState:
         self.clients = {}
         for remote_app_config in app.config.get("OAUTHCLIENT_CLIENTS", []):
             remote_app = obj_or_import_string(remote_app_config)
-            assert isinstance(remote_app, BaseClient)
+            assert isinstance(remote_app, RemoteApp)
 
             self.clients[remote_app.name] = remote_app
             remote_app.register(self.oauth)

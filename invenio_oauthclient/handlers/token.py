@@ -189,45 +189,7 @@ def token_setter(
     return None
 
 
-def token_getter(remote, token=""):
-    """Retrieve OAuth access token.
-
-    Used by flask-oauthlib to get the access token when making requests.
-
-    :param remote: The remote application.
-    :param token: Type of token to get. Data passed from ``oauth.request()`` to
-        identify which token to retrieve. (Default: ``''``)
-    :returns: A tuple of the form (access_token, secret, refresh_token, expires) or None
-    """
-    session_key = token_session_key(remote.name)
-
-    if session_key not in session and current_user.is_authenticated:
-        # Fetch key from token store if user is authenticated, and the key
-        # isn't already cached in the session.
-        remote_token = RemoteToken.get(
-            current_user.get_id(),
-            remote.consumer_key,
-            token_type=token,
-        )
-
-        if remote_token is None:
-            return None
-
-        # Store token and secret in session
-        session[session_key] = remote_token.token()
-
-    values = session.get(session_key, None)
-    if values:
-        # Continue supporting the old tuple for backwards-compatibility with existing sessions
-        if len(values) == 2:
-            # access_token, secret
-            return values[0], values[1], None, None
-        if values[3] is not None:
-            # access_token, secret, refresh_token, expires
-            return values[0], values[1], values[2], datetime.fromisoformat(values[3])
-    return values
-
-
+# THIS IS IN USE
 def token_delete(remote, token=""):
     """Remove OAuth access tokens from session.
 
@@ -240,6 +202,7 @@ def token_delete(remote, token=""):
     return session.pop(session_key, None)
 
 
+# THIS IS IN USE
 def oauth_logout_handler(sender_app, user=None):
     """Remove all access tokens and OAuth session data on logout.
 
@@ -247,8 +210,7 @@ def oauth_logout_handler(sender_app, user=None):
     - OAuth tokens for all remote apps
     - Unmanaged roles (groups) from the session
     """
-    oauth = current_oauthclient.oauth
-    for remote in oauth.remote_apps.values():
+    for remote in current_oauthclient.clients.values():
         token_delete(remote)
 
     # Clear unmanaged roles (groups) from session
@@ -256,8 +218,3 @@ def oauth_logout_handler(sender_app, user=None):
     session.pop("unmanaged_roles_ids", None)
 
     db.session.commit()
-
-
-def make_token_getter(remote):
-    """Make a token getter for a remote application."""
-    return partial(token_getter, remote)

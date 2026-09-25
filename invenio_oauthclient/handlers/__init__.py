@@ -9,14 +9,12 @@ from .rest import disconnect_handler as disconnect_handler_rest
 from .rest import signup_handler as signup_handler_rest
 from .token import (
     get_session_next_url,
-    make_token_getter,
     oauth1_token_setter,
     oauth2_token_setter,
     oauth_logout_handler,
     response_token_setter,
     set_session_next_url,
     token_delete,
-    token_getter,
     token_session_key,
     token_setter,
 )
@@ -43,7 +41,6 @@ __all__ = (
     "disconnect_handler",
     "get_session_next_url",
     "make_handler",
-    "make_token_getter",
     "oauth_error_handler",
     "oauth_logout_handler",
     "oauth1_token_setter",
@@ -54,7 +51,6 @@ __all__ = (
     "signup_handler_rest",
     "signup_handler",
     "token_delete",
-    "token_getter",
     "token_session_key",
     "token_setter",
 )
