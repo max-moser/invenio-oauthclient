@@ -322,7 +322,16 @@ from .authlib import KeycloakRemoteApp
 OAUTHCLIENT_CLIENTS = [
 ]
 
-OAUTHCLIENT_REMOTE_APPS = {}
+OAUTHCLIENT_REMOTE_APPS = {
+    # Randomized test OP: https://oauth.sdk42.com/
+    KeycloakRemoteApp(
+        "test",
+        "https://oauth.sdk42.com/.well-known/openid-configuration",
+        "dev",
+        "the test idp takes any secret",
+        "openid email profile extras",
+    )
+}
 """Configuration of remote applications."""
 
 OAUTHCLIENT_SESSION_KEY_PREFIX = "oauth_token"
