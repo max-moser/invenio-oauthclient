@@ -323,9 +323,10 @@ OAUTHCLIENT_CLIENTS = []
 
 OAUTHCLIENT_REMOTE_APPS = [
     # Randomized test OP: https://oauth.sdk42.com/
+    # keyword: "hosted mock oidc provider"
     KeycloakRemoteApp(
         "test",
-        "https://oauth.sdk42.com/.well-known/openid-configuration",
+        "https://oauth.wiremockapi.cloud/.well-known/openid-configuration",
         "dev",
         "the test idp takes any secret",
         "openid email profile extras",

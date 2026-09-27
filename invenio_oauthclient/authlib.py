@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 from authlib.integrations.base_client.errors import MismatchingStateError
 from authlib.integrations.flask_client import FlaskOAuth2App, OAuth
+from authlib.oauth2.client import OAuth2Client
 from flask import (
     Blueprint,
     current_app,
@@ -18,9 +19,10 @@ from flask import (
 from flask_security import login_user
 from invenio_accounts.models import User, UserIdentity
 from invenio_db import db
+from requests import HTTPError
+from werkzeug.local import LocalProxy
 from werkzeug.routing import BaseConverter, ValidationError
 
-from .errors import OAuthClientUserNotRegistered
 from .handlers.token import set_session_next_url
 from .models import RemoteToken
 from .oauth import oauth_authenticate, oauth_get_user, oauth_register
@@ -125,16 +127,30 @@ class RemoteApp:
             client_kwargs={
                 "scope": self.scope,
             },
+            compliance_fix=self.register_compliance_fixes,
         )
         return self.client
 
-    def parse_user_info(self, user_info: dict) -> dict: ...
+    def register_compliance_fixes(self, session: OAuth2Client): ...
+
+    def parse_user_info(self, id_token: dict, user_info: dict) -> dict: ...
 
 
 class KeycloakRemoteApp(RemoteApp):
-    def parse_user_info(self, user_info: dict) -> dict:
-        user_info = info_serializer_handler(self, user_info, user_info)
+    def parse_user_info(self, id_token: dict, user_info: dict) -> dict:
+        user_info = info_serializer_handler(self, id_token, user_info)
         return user_info
+
+
+class SDK42RemoteApp(KeycloakRemoteApp):
+    def register_compliance_fixes(self, session: OAuth2Client):
+        def _set_missing_access_token(resp):
+            data = resp.json()
+            data["access_token"] = "some_access_token"
+            resp.json = lambda: data
+            return resp
+
+        session.register_compliance_hook("access_token_response", _set_missing_values)
 
 
 class RemoteAppConverter(BaseConverter):
@@ -184,18 +200,9 @@ def _finalize_login(user: User, remote_app: RemoteApp, token: dict):
 
 @bp.route("/oauth/authorized/<remote_app:remote_app>")
 def oauth_authorize(remote_app: RemoteApp):
-    from authlib.oidc.core.claims import IDToken
-
-    # TODO this is just a hack to get the free OP working
-    class MyIDToken(IDToken):
-        ESSENTIAL_CLAIMS = [c for c in IDToken.ESSENTIAL_CLAIMS if c != "aud"]
-
-        def validate_nonce(self):
-            return
-
     # Note: Authlib takes care of ID token validation (aud, iss, etc.)
     try:
-        token = remote_app.client.authorize_access_token(claims_cls=MyIDToken)
+        token = remote_app.client.authorize_access_token()
     except MismatchingStateError:
         # The state of the request and response are mismatched, e.g. when the user
         # refreshes on the authorize page
@@ -204,13 +211,18 @@ def oauth_authorize(remote_app: RemoteApp):
 
     # The initial ID token may hold very limited information, so we fetch more
     # user info from the endpoint and perform a quick sanity check
-    # remote_user_info = remote_app.client.userinfo()
-    remote_user_info = {}
-    # assert remote_user_info["sub"] == token["userinfo"]["sub"]
-    # TODO patch_dict for nested dicts
-    token_user_info = remote_app.parse_user_info(
-        {**token["userinfo"], **remote_user_info}
-    )
+    # (only when actually needed, with the local proxy)
+    def _get_user_info():
+        try:
+            remote_user_info = remote_app.client.userinfo()
+            assert remote_user_info["sub"] == token["userinfo"]["sub"]
+            return remote_user_info
+        except HTTPError:
+            return {}
+
+    remote_user_info = LocalProxy(_get_user_info)
+
+    token_user_info = remote_app.parse_user_info(token["userinfo"], remote_user_info)
     user_info = token_user_info["user"]
 
     # TODO check if access_token is supposed to be present
@@ -231,7 +243,6 @@ def oauth_authorize(remote_app: RemoteApp):
             return redirect(url_for(".register", remote_app=remote_app))
 
     # TODO next url
-    # TODO store the token
     _finalize_login(user, remote_app, token)
     return redirect("/")
 
@@ -278,7 +289,6 @@ def register(remote_app: RemoteApp):
             _finalize_login(user, remote_app, session.get(f"{remote_app.name}_token"))
             return redirect("/")
 
-    # TODO store the token
     # TODO provide REST endpoint for this as well
 
 

@@ -33,6 +33,7 @@ from flask_oauthlib.client import OAuthRemoteApp  # noqa isort:skip
 
 
 class AuthlibInvenioIntegration(AuthlibFlaskIntegration):
+    @staticmethod
     def load_config(oauth: OAuth, name: str, params: list[str]):
         """Look through the app config to find values for the given remote app."""
         # TODO enable configuration via "OAUTHCLIENT_" prefix?

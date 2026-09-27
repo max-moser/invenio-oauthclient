@@ -51,7 +51,7 @@ def oauth_get_user(remote_app, account_info=None, access_token=None):
     :returns: A :class:`invenio_accounts.models.User` instance or ``None``.
     """
     if access_token:
-        token = RemoteToken.get_by_token(client_id, access_token)
+        token = RemoteToken.get_by_token(remote_app.name, access_token)
         if token:
             return token.remote_account.user
 
