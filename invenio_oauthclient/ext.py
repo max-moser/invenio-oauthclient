@@ -72,7 +72,7 @@ class _OAuthClientState:
         self.oauth.init_app(app)
 
         self.clients = {}
-        for remote_app_config in app.config.get("OAUTHCLIENT_CLIENTS", []):
+        for remote_app_config in app.config.get("OAUTHCLIENT_REMOTE_APPS", []):
             remote_app = obj_or_import_string(remote_app_config)
             assert isinstance(remote_app, RemoteApp)
 

@@ -26,7 +26,7 @@
           {%- if s.account and can_disconnect -%}
           <a href="{{url_for('invenio_oauthclient.disconnect', remote_app=s.appid)}}" class="btn btn-default btn-xs"><i class="fa fa-times-circle"></i> {{ _('Disconnect') }}</a>
           {%- elif not s.account -%}
-          <a href="{{url_for('invenio_oauthclient.login', remote_app=s.appid)}}" class="btn btn-default btn-xs"><i class="fa fa-link"></i> {{ _('Connect') }}</a>
+          <a href="{{url_for('invenio_authlib_client.login', remote_app=s.appid)}}" class="btn btn-default btn-xs"><i class="fa fa-link"></i> {{ _('Connect') }}</a>
           {%- endif -%}
       </div>
       {% endblock oauth_controls %}

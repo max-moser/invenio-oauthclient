@@ -53,7 +53,7 @@
           {%- elif not s.account -%}
             <a
               role="button"
-              href="{{url_for('invenio_oauthclient.login', remote_app=s.appid)}}"
+              href="{{url_for('invenio_authlib_client.login', remote_app=s.appid)}}"
               class="ui compact basic button mini"
             >
               <i class="linkify icon" aria-hidden="true"></i>

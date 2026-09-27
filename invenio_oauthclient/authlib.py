@@ -16,10 +16,13 @@ from flask import (
     url_for,
 )
 from flask_security import login_user
+from invenio_accounts.models import User, UserIdentity
+from invenio_db import db
 from werkzeug.routing import BaseConverter, ValidationError
 
 from .errors import OAuthClientUserNotRegistered
 from .handlers.token import set_session_next_url
+from .models import RemoteToken
 from .oauth import oauth_authenticate, oauth_get_user, oauth_register
 from .proxies import current_oauthclient
 from .utils import (
@@ -58,7 +61,7 @@ def info_serializer_handler(remote, token_user_info, user_info=None):
         "user": {
             "active": True,
             "email": email,
-            "username": username or email.split("@")[0],
+            "username": (username or email.split("@")[0]).replace(".", "_"),
             "user_profile": {
                 "full_name": full_name,
                 "affiliations": "who the fuck knows",
@@ -159,6 +162,26 @@ def login(remote_app: RemoteApp):
     return remote_app.client.authorize_redirect(redirect_url)
 
 
+def _finalize_login(user: User, remote_app: RemoteApp, token: dict):
+    user_identity = (
+        db.session.query(UserIdentity)
+        .filter(UserIdentity.user == user, UserIdentity.method == remote_app.name)
+        .one_or_none()
+    )
+    if user_identity:
+        user_identity.id = token["userinfo"]["sub"]
+    else:
+        UserIdentity.create(user, remote_app.name, token["userinfo"]["sub"])
+
+    # TODO should be access_token
+    access_token = token["id_token"]
+    if remote_token := RemoteToken.get(user.id, remote_app.name):
+        remote_token.update_token(token=access_token, secret="")
+    else:
+        RemoteToken.create(user.id, remote_app.name, token=access_token, secret="")
+    db.session.commit()
+
+
 @bp.route("/oauth/authorized/<remote_app:remote_app>")
 def oauth_authorize(remote_app: RemoteApp):
     from authlib.oidc.core.claims import IDToken
@@ -185,10 +208,13 @@ def oauth_authorize(remote_app: RemoteApp):
     remote_user_info = {}
     # assert remote_user_info["sub"] == token["userinfo"]["sub"]
     # TODO patch_dict for nested dicts
-    user_info = remote_app.parse_user_info({**token["userinfo"], **remote_user_info})
-    user_info = user_info["user"]
+    token_user_info = remote_app.parse_user_info(
+        {**token["userinfo"], **remote_user_info}
+    )
+    user_info = token_user_info["user"]
 
-    if user := oauth_get_user(remote_app.name, user_info, token):
+    # TODO check if access_token is supposed to be present
+    if user := oauth_get_user(remote_app, token_user_info, token.get("access_token")):
         oauth_authenticate(remote_app.name, user)
 
     else:
@@ -206,6 +232,7 @@ def oauth_authorize(remote_app: RemoteApp):
 
     # TODO next url
     # TODO store the token
+    _finalize_login(user, remote_app, token)
     return redirect("/")
 
 
@@ -228,10 +255,10 @@ def register(remote_app: RemoteApp):
         # GET request
         try:
             user_info = session.pop(f"{remote_app.name}_userinfo")
-            token = session.pop(f"{remote_app.name}_token")
+            # token = session.pop(f"{remote_app.name}_token")
             return _render_signup_form(remote_app, form, user_info)
         except KeyError:
-            flash("Could not find the user information from the login.")
+            flash("Could not find the user information from the login in the session.")
             return redirect("/")
 
     elif not form.validate_on_submit():
@@ -248,6 +275,7 @@ def register(remote_app: RemoteApp):
             raise Exception("Could not create user")
         else:
             login_user(user)
+            _finalize_login(user, remote_app, session.get(f"{remote_app.name}_token"))
             return redirect("/")
 
     # TODO store the token

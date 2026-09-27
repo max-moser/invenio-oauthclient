@@ -4,6 +4,7 @@
 
 """Account settings blueprint for oauthclient."""
 
+from dataclasses import dataclass
 from operator import itemgetter
 
 from flask import Blueprint, current_app, render_template
@@ -21,40 +22,44 @@ blueprint = Blueprint(
 )
 
 
+@dataclass
+class RemoteInfo:
+    appid: str
+    title: str
+    icon: str
+    description: str
+    link_only: bool
+    account: RemoteAccount
+
+
 @blueprint.route("/", methods=["GET", "POST"])
 @login_required
 def index():
     """List linked accounts."""
-    oauth = current_oauthclient.oauth
-
     services = []
     service_map = {}
     i = 0
 
-    for appid, conf in current_app.config["OAUTHCLIENT_REMOTE_APPS"].items():
-        if not conf.get("hide", False):
-            services.append(
-                dict(
-                    appid=appid,
-                    title=conf["title"],
-                    icon=conf.get("icon", None),
-                    description=conf.get("description", None),
-                    link_only=conf.get("link_only", False),
-                    account=None,
-                )
-            )
-            service_map[oauth.remote_apps[appid].consumer_key] = i
-            i += 1
+    remote_apps = current_oauthclient.clients.values()
+    visible_remote_apps = [app for app in remote_apps if not app.hidden]
 
     # Fetch already linked accounts
     accounts = RemoteAccount.query.filter_by(user_id=current_user.get_id()).all()
+    accounts_by_app = {a.client_id: a for a in accounts}
 
-    for a in accounts:
-        if a.client_id in service_map:
-            services[service_map[a.client_id]]["account"] = a
+    for remote_app in visible_remote_apps:
+        remote_info = RemoteInfo(
+            remote_app.name,
+            "TODO TITLE",
+            "TODO ICON",
+            "TODO DESCRIPTION",
+            remote_app.link_only,
+            accounts_by_app.get(remote_app.name, None),
+        )
+        services.append(remote_info)
 
     # Sort according to title
-    services.sort(key=itemgetter("title"))
+    services.sort(key=lambda s: s.title)
 
     # Check if local login is possible
     local_login_enabled = current_app.config.get("ACCOUNTS_LOCAL_LOGIN_ENABLED", True)

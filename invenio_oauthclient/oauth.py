@@ -29,16 +29,16 @@ def _commit(response=None):
     return response
 
 
-def _get_external_id(account_info):
-    """Get external id from account info."""
-    if all(k in account_info for k in ("external_id", "external_method")):
-        return dict(
-            id=account_info["external_id"], method=account_info["external_method"]
-        )
-    return None
+# def _get_external_id(account_info):
+#     """Get external id from account info."""
+#     if all(k in account_info for k in ("external_id", "external_method")):
+#         return dict(
+#             id=account_info["external_id"], method=account_info["external_method"]
+#         )
+#     return None
 
 
-def oauth_get_user(client_id, account_info=None, access_token=None):
+def oauth_get_user(remote_app, account_info=None, access_token=None):
     """Retrieve user object for the given request.
 
     Uses either the access token or extracted account information to retrieve
@@ -56,14 +56,14 @@ def oauth_get_user(client_id, account_info=None, access_token=None):
             return token.remote_account.user
 
     if account_info:
-        external_id = _get_external_id(account_info)
-        if external_id:
-            user = UserIdentity.get_user(external_id["method"], external_id["id"])
-            if user:
-                return user
-        email = account_info.get("user", {}).get("email")
-        if email:
-            return User.query.filter_by(email=email).one_or_none()
+        user = UserIdentity.get_user(
+            account_info["external_method"], account_info["external_id"]
+        )
+        if user:
+            return user
+
+        if email := account_info.get("email"):
+            return db.session.query(User).filter_by(email=email).one_or_none()
     return None
 
 

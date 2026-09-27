@@ -319,10 +319,9 @@ from invenio_oauthclient.utils import _create_registrationform
 
 from .authlib import KeycloakRemoteApp
 
-OAUTHCLIENT_CLIENTS = [
-]
+OAUTHCLIENT_CLIENTS = []
 
-OAUTHCLIENT_REMOTE_APPS = {
+OAUTHCLIENT_REMOTE_APPS = [
     # Randomized test OP: https://oauth.sdk42.com/
     KeycloakRemoteApp(
         "test",
@@ -331,7 +330,7 @@ OAUTHCLIENT_REMOTE_APPS = {
         "the test idp takes any secret",
         "openid email profile extras",
     )
-}
+]
 """Configuration of remote applications."""
 
 OAUTHCLIENT_SESSION_KEY_PREFIX = "oauth_token"
