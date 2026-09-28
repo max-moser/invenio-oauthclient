@@ -16,7 +16,7 @@ from flask import (
     session,
     url_for,
 )
-from flask_security import login_user
+from flask_security import current_user, login_user
 from invenio_accounts.models import User, UserIdentity
 from invenio_db import db
 from requests import HTTPError
@@ -24,7 +24,7 @@ from werkzeug.local import LocalProxy
 from werkzeug.routing import BaseConverter, ValidationError
 
 from .handlers.token import set_session_next_url
-from .models import RemoteToken
+from .models import RemoteAccount, RemoteToken
 from .oauth import oauth_authenticate, oauth_get_user, oauth_register
 from .proxies import current_oauthclient
 from .utils import (
@@ -292,29 +292,68 @@ def register(remote_app: RemoteApp):
     # TODO provide REST endpoint for this as well
 
 
-def fetch_token(name, request):
-    # TODO check what this does again
-    session_key = token_session_key(name)
+def fetch_token(remote_app_name: str):
+    # This fetches the token for the given remote app for the current user;
+    # used when creating requests with the remote app client, e.g.
+    # `current_oauthclient.clients[NAME].client.get("/path/to/resource")`
+    # TODO test this, e.g. with GitHub
+    # TODO the authlib examples don't cache the token
+    session_key = f"{remote_app_name}_remote_token"
 
     if session_key not in session and current_user.is_authenticated:
-        # Fetch key from token store if user is authenticated, and the key
-        # isn't already cached in the session.
         remote_token = RemoteToken.get(
             current_user.get_id(),
             remote.consumer_key,
-            token_type=token,
+            token_type="",
         )
-
         if remote_token is None:
             return None
 
-        # Store token and secret in session
-        session[session_key] = remote_token.token()
+        token = {
+            "access_token": remote_token.access_token,
+            "token_type": remote_token.token_type,
+            "refresh_token": remote_token.refresh_token,
+            "expires_at": remote_token.expires,
+        }
+        session[session_key] = token
+        return token
 
-    values = session.get(session_key, None)
+    return session.get(session_key, None)
 
-    if values:
-        access_token, secret, refresh_token, expires_str = values
-        expires = datetime.fromisoformat(values[3])
-        return access_token, secret, refresh_token, expires
-    return values
+
+def refresh_token(remote_app_name: str, token, refresh_token=None, access_token=None):
+    # TODO this needs to be tested!
+    if not current_user.is_authenticated:
+        return None
+
+    stored_token = None
+    if refresh_token:
+        stored_token = (
+            db.session.query(RemoteToken)
+            .join(RemoteAccount)
+            .filter(
+                RemoteToken.refresh_token == refresh_token,
+                RemoteAccount.user_id == current_user.id,
+                RemoteAccount.client_id == remote_app_name,
+            )
+            .first()
+        )
+    elif access_token:
+        stored_token = (
+            db.session.query(RemoteToken)
+            .join(RemoteAccount)
+            .filter(
+                RemoteToken.access_token == access_token,
+                RemoteAccount.user_id == current_user.id,
+                RemoteAccount.client_id == remote_app_name,
+            )
+            .first()
+        )
+    else:
+        return
+
+    if stored_token:
+        stored_token.update_token(
+            token["access_token"], "", token["refresh_token"], token["expires_at"]
+        )
+        db.session.commit()

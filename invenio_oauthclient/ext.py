@@ -18,7 +18,7 @@ from invenio_theme.proxies import current_theme_icons
 from invenio_oauthclient._compat import monkey_patch_werkzeug
 
 from . import config, handlers
-from .authlib import RemoteApp, bp, fetch_token
+from .authlib import RemoteApp, bp, fetch_token, refresh_token
 from .utils import (
     load_user_role_needs,
     obj_or_import_string,
@@ -63,7 +63,7 @@ class _OAuthClientState:
         # Connect signal to remove access tokens on logout
         user_logged_out.connect(handlers.oauth_logout_handler)
 
-        self.oauth = OAuth(fetch_token=fetch_token)
+        self.oauth = OAuth(fetch_token=fetch_token, update_token=refresh_token)
         self.oauth.framework_integration_cls = AuthlibInvenioIntegration
 
         # Init config
