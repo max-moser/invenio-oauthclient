@@ -71,10 +71,10 @@ invenio_oauthclient = "invenio_oauthclient.tasks"
 invenio_oauthclient = "invenio_oauthclient:alembic"
 
 [project.entry-points."invenio_base.api_converters"]
-remote_app = "invenio_oauthclient.authlib:RemoteAppConverter"
+remote_app = "invenio_oauthclient.authlib.views:RemoteAppConverter"
 
 [project.entry-points."invenio_base.converters"]
-remote_app = "invenio_oauthclient.authlib:RemoteAppConverter"
+remote_app = "invenio_oauthclient.authlib.views:RemoteAppConverter"
 
 [project.entry-points."invenio_db.models"]
 invenio_oauthclient = "invenio_oauthclient.models"

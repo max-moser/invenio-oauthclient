@@ -18,7 +18,9 @@ from invenio_theme.proxies import current_theme_icons
 from invenio_oauthclient._compat import monkey_patch_werkzeug
 
 from . import config, handlers
-from .authlib import RemoteApp, bp, fetch_token, refresh_token
+from .authlib.authlib import fetch_token, refresh_token
+from .authlib.remote import RemoteApp
+from .authlib.views import bp
 from .utils import (
     load_user_role_needs,
     obj_or_import_string,

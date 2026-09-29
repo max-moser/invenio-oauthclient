@@ -317,14 +317,14 @@ setting ``remote_app`` in your remote application configuration.
 
 from invenio_oauthclient.utils import _create_registrationform
 
-from .authlib import KeycloakRemoteApp
+from .authlib.remote import OIDCRemoteApp
 
 OAUTHCLIENT_CLIENTS = []
 
 OAUTHCLIENT_REMOTE_APPS = [
     # Randomized test OP: https://oauth.sdk42.com/
     # keyword: "hosted mock oidc provider"
-    KeycloakRemoteApp(
+    OIDCRemoteApp(
         "test",
         "https://oauth.wiremockapi.cloud/.well-known/openid-configuration",
         "dev",
