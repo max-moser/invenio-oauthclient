@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -6,6 +6,7 @@ class UserInfo:
     user: dict
     external_id: str
     external_method: str
+    extra_data: dict = field(default_factory=dict)
 
 
 @dataclass

@@ -8,31 +8,12 @@ from flask import (
     session,
 )
 from flask_security import current_user
-from invenio_accounts.models import User, UserIdentity
 from invenio_db import db
 
 from ..models import RemoteAccount, RemoteToken
+from ..proxies import current_oauthclient
 from .remote import RemoteApp
 from .utils import fill_form
-
-
-def _finalize_login(user: User, remote_app: RemoteApp, token: dict):
-    user_identity = (
-        db.session.query(UserIdentity)
-        .filter(UserIdentity.user == user, UserIdentity.method == remote_app.name)
-        .one_or_none()
-    )
-    if user_identity:
-        user_identity.id = token["userinfo"]["sub"]
-    else:
-        UserIdentity.create(user, remote_app.name, token["userinfo"]["sub"])
-
-    access_token = token["access_token"]
-    if remote_token := RemoteToken.get(user.id, remote_app.name):
-        remote_token.update_token(token=access_token, secret="")
-    else:
-        RemoteToken.create(user.id, remote_app.name, token=access_token, secret="")
-    db.session.commit()
 
 
 def _render_signup_form(remote_app: RemoteApp, form, account_info: dict):
@@ -47,18 +28,19 @@ def _render_signup_form(remote_app: RemoteApp, form, account_info: dict):
     )
 
 
-def fetch_token(remote_app: RemoteApp):
+def fetch_token(remote_app_name: str):
     # This fetches the token for the given remote app for the current user;
     # used when creating requests with the remote app client, e.g.
     # `current_oauthclient.clients[NAME].client.get("/path/to/resource")`
     # TODO test this, e.g. with GitHub
     # TODO the authlib examples don't cache the token
+    remote_app = current_oauthclient.clients[remote_app_name]
     session_key = f"{remote_app.name}_remote_token"
 
     if session_key not in session and current_user.is_authenticated:
         remote_token = RemoteToken.get(
             current_user.get_id(),
-            remote_app.client_id,
+            remote_app.name,
             token_type="",
         )
         if remote_token is None:
@@ -76,8 +58,9 @@ def fetch_token(remote_app: RemoteApp):
     return session.get(session_key, None)
 
 
-def refresh_token(remote_app: RemoteApp, token, refresh_token=None, access_token=None):
+def refresh_token(remote_app_name: str, token, refresh_token=None, access_token=None):
     # TODO this needs to be tested!
+    remote_app = current_oauthclient.clients[remote_app_name]
     if not current_user.is_authenticated:
         return
 

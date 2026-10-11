@@ -1,19 +1,19 @@
 # SPDX-FileCopyrightText: 2026 TU Wien.
 # SPDX-License-Identifier: MIT
 
+from __future__ import annotations
+
 from flask import (
     after_this_request,
+    current_app,
     session,
 )
 from flask_security import login_user, logout_user
 from flask_security.confirmable import confirm_user, requires_confirmation
-from invenio_accounts.utils import register_user
 from invenio_accounts.models import User, UserIdentity
+from invenio_accounts.utils import register_user
 from invenio_db import db
 
-from ..handlers.token import (
-    token_session_key,
-)
 from ..models import RemoteAccount, RemoteToken
 from ..oauth import _commit, _datastore
 from ..utils import (
@@ -22,10 +22,15 @@ from ..utils import (
     remove_csrf_tokens,
     remove_none_values,
 )
+from .data import UserInfo
+from .remote import RemoteApp
 
 
 def oauth_authenticate(
-    client_id, user, require_existing_link=False, require_user_confirmation=False
+    remote_app: RemoteApp,
+    user: User,
+    require_existing_link: bool = False,
+    require_user_confirmation: bool = False,
 ):
     """Authenticate an oauth authorized callback.
 
@@ -43,43 +48,47 @@ def oauth_authenticate(
     after_this_request(_commit)
     if login_user(user):
         if require_existing_link:
-            account = RemoteAccount.get(user.id, client_id)
+            account = RemoteAccount.get(user.id, remote_app.name)
             if account is None:
                 logout_user()
                 return False
         return True
 
 
-def oauth_get_user(remote_app, account_info=None, access_token=None):
+def oauth_get_user(
+    remote_app: RemoteApp,
+    user_info: UserInfo | None = None,
+    access_token: str | None = None,
+) -> User | None:
     """Retrieve user object for the given request.
 
     Uses either the access token or extracted account information to retrieve
     the user object.
-
-    :param client_id: The client id.
-    :param account_info: The dictionary with the account info.
-        (Default: ``None``)
-    :param access_token: The access token. (Default: ``None``)
-    :returns: A :class:`invenio_accounts.models.User` instance or ``None``.
     """
     if access_token:
         token = RemoteToken.get_by_token(remote_app.name, access_token)
         if token:
             return token.remote_account.user
 
-    if account_info:
+    if user_info:
         user = UserIdentity.get_user(
-            account_info["external_method"], account_info["external_id"]
+            user_info.external_method,
+            user_info.external_id,
         )
         if user:
             return user
 
-        if email := account_info.get("email"):
+        if email := user_info.user.get("email"):
             return db.session.query(User).filter_by(email=email).one_or_none()
     return None
 
 
-def oauth_register(form, user_info=None, precedence_mask=None, signup_options=None):
+def oauth_register(
+    form,
+    user_info: dict | None = None,
+    precedence_mask: dict | None = None,
+    signup_options: dict | None = None,
+) -> User | None:
     """Register user if possible.
 
     :param form: A form instance.
@@ -116,6 +125,16 @@ def oauth_register(form, user_info=None, precedence_mask=None, signup_options=No
             confirm_user(user)
         _datastore.commit()
         return user
+
+
+def token_session_key(remote_app: RemoteApp):
+    """Generate a session key used to store the token for a remote app.
+
+    :param remote_app: The remote application.
+    :returns: The session key.
+    """
+    prefix = current_app.config["OAUTHCLIENT_SESSION_KEY_PREFIX"]
+    return f"{prefix}_{remote_app.name}".lstrip("_")
 
 
 def get_session_next_url(remote_app):

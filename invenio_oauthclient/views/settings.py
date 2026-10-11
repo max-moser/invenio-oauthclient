@@ -36,9 +36,7 @@ class RemoteInfo:
 @login_required
 def index():
     """List linked accounts."""
-    services = []
-    service_map = {}
-    i = 0
+    services: list[RemoteInfo] = []
 
     remote_apps = current_oauthclient.clients.values()
     visible_remote_apps = [app for app in remote_apps if not app.hidden]
@@ -49,12 +47,12 @@ def index():
 
     for remote_app in visible_remote_apps:
         remote_info = RemoteInfo(
-            remote_app.name,
-            "TODO TITLE",
-            "TODO ICON",
-            "TODO DESCRIPTION",
-            remote_app.link_only,
-            accounts_by_app.get(remote_app.name, None),
+            appid=remote_app.name,
+            title=remote_app.title,
+            icon=remote_app.icon,
+            description=remote_app.description,
+            link_only=remote_app.link_only,
+            account=accounts_by_app.get(remote_app.name, None),
         )
         services.append(remote_info)
 

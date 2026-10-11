@@ -3,13 +3,12 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict
+from collections import UserDict
 
 from authlib.integrations.base_client import MismatchingStateError
 from flask import Blueprint, flash, redirect, request, session, url_for
 from flask_login import login_user
 from requests import HTTPError
-from werkzeug.local import LocalProxy
 from werkzeug.routing import BaseConverter, ValidationError
 
 from ..proxies import current_oauthclient
@@ -19,7 +18,7 @@ from ..utils import (
     fill_form,
     get_safe_redirect_target,
 )
-from .authlib import _finalize_login, _render_signup_form
+from .authlib import _render_signup_form
 from .errors import OAuthError
 from .remote import RemoteApp
 from .utils import (
@@ -29,6 +28,23 @@ from .utils import (
     oauth_register,
     set_session_next_url,
 )
+
+
+class LazyDict(UserDict):
+    def __init__(self, load_func):
+        self.data = {}
+        self.load_func = load_func
+
+    def __getitem__(self, key):
+        if not self.data:
+            self.data = self.load_func()
+        return self.data[key]
+
+    def get(self, key, default=None):
+        if not self.data:
+            self.data = self.load_func()
+        return self.data.get(key, default=default)
+
 
 bp = Blueprint("invenio_authlib_client", __name__)
 
@@ -65,16 +81,15 @@ def oauth_authorize(remote_app: RemoteApp):
         except HTTPError:
             return {}
 
-    remote_user_info = LocalProxy(_get_user_info)
-
-    token_user_info = remote_app.parse_user_info(token["userinfo"], remote_user_info)
+    remote_user_info = LazyDict(_get_user_info)
+    token_user_info = remote_app.parse_user_info(
+        token["userinfo"], remote_user_info, token["access_token"]
+    )
     user_info = token_user_info.user
 
     # TODO check if access_token is supposed to be present
-    if user := oauth_get_user(
-        remote_app, asdict(token_user_info), token.get("access_token")
-    ):
-        oauth_authenticate(remote_app.name, user)
+    if user := oauth_get_user(remote_app, token_user_info, token.get("access_token")):
+        oauth_authenticate(remote_app, user)
 
     else:
         flash(f"User not found for user info: {user_info}")
@@ -85,23 +100,29 @@ def oauth_authorize(remote_app: RemoteApp):
         # TODO replace this ugly call, maybe per app?
         if (user := oauth_register(form, user_info, signup_options={})) is None:
             # If registration did not work, then the user has to fill out a form
-            session[f"{remote_app.name}_userinfo"] = user_info
+            session[f"{remote_app.name}_userinfo"] = token_user_info
             session[f"{remote_app.name}_token"] = token
             return redirect(url_for(".register", remote_app=remote_app))
+        else:
+            oauth_authenticate(remote_app, user)
 
-    _finalize_login(user, remote_app, token)
+    remote_app.finalize_login(user, token_user_info, token["access_token"])
     return redirect(get_session_next_url(remote_app.name))
 
 
 @bp.route("/signup/<remote_app:remote_app>", methods=["GET", "POST"])
 def register(remote_app: RemoteApp):
     form = create_registrationform(request.form, oauth_remote_app=remote_app)
+
+    # TODO a KeyError here should redirect to the login, i suppose
+    # TODO server-side session to avoid leaking info
+    user_info = session[f"{remote_app.name}_userinfo"]
+    token = session[f"{remote_app.name}_token"]
+
     if not form.is_submitted():
         # GET request
         try:
-            user_info = session.pop(f"{remote_app.name}_userinfo")
-            # token = session.pop(f"{remote_app.name}_token")
-            return _render_signup_form(remote_app, form, user_info)
+            return _render_signup_form(remote_app, form, user_info.user)
         except KeyError:
             flash("Could not find the user information from the login in the session.")
             return redirect("/")
@@ -120,7 +141,7 @@ def register(remote_app: RemoteApp):
             raise OAuthError("Could not create user")
         else:
             login_user(user)
-            _finalize_login(user, remote_app, session.get(f"{remote_app.name}_token"))
+            remote_app.finalize_login(user, user_info, token["access_token"])
             return redirect(get_session_next_url(remote_app.name))
 
     # TODO provide REST endpoint for this as well
