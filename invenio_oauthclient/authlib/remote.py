@@ -11,7 +11,7 @@ from authlib.oauth2.client import OAuth2Client
 from invenio_accounts.models import User
 from invenio_db import db
 
-from ..models import RemoteToken, UserIdentity
+from ..models import RemoteAccount, RemoteToken, UserIdentity
 from .data import ServerMetadata, UserInfo
 
 
@@ -85,6 +85,9 @@ class RemoteApp(ABC):
         else:
             UserIdentity.create(user, self.name, user_info.external_id)
 
+        # Explicitly set the external ID in the extra data, to make it easier later
+        # to query for the UserIdentity via the RemoteAccount
+        user_info.extra_data.setdefault("external_id", user_info.external_id)
         if remote_token := RemoteToken.get(user.id, self.name):
             remote_token.update_token(token=access_token, secret="")
             remote_token.remote_account.extra_data = user_info.extra_data
@@ -97,7 +100,7 @@ class RemoteApp(ABC):
                 secret="",
             )
 
-        db.session.commit()
+    def handle_disconnect(self, remote_account: RemoteAccount | None): ...
 
 
 class OIDCRemoteApp(RemoteApp):

@@ -44,7 +44,7 @@
           {%- if s.account and (can_disconnect or s.link_only) -%}
             <a
               role="button"
-              href="{{url_for('invenio_oauthclient.disconnect', remote_app=s.appid)}}"
+              href="{{url_for('invenio_authlib_client.disconnect', remote_app=s.appid)}}"
               class="ui compact button mini"
             >
               <i class="close icon" aria-hidden="true"></i>

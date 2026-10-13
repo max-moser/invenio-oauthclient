@@ -6,11 +6,15 @@ from __future__ import annotations
 from collections import UserDict
 
 from authlib.integrations.base_client import MismatchingStateError
-from flask import Blueprint, flash, redirect, request, session, url_for
-from flask_login import login_user
+from flask import Blueprint, current_app, flash, redirect, request, session, url_for
+from flask_login import current_user, login_user
+from invenio_accounts.models import UserIdentity
+from invenio_db import db
 from requests import HTTPError
 from werkzeug.routing import BaseConverter, ValidationError
 
+from ..handlers.utils import require_more_than_one_external_account
+from ..models import RemoteAccount
 from ..proxies import current_oauthclient
 from ..utils import (
     create_csrf_disabled_registrationform,
@@ -53,7 +57,7 @@ bp = Blueprint("invenio_authlib_client", __name__)
 def login(remote_app: RemoteApp):
     """Start the authentication workflow with the given remote app."""
     next_param = get_safe_redirect_target(arg="next")
-    set_session_next_url(remote_app.name, next_param)
+    set_session_next_url(remote_app, next_param)
 
     redirect_url = url_for(".oauth_authorize", remote_app=remote_app, _external=True)
     return remote_app.client.authorize_redirect(redirect_url)
@@ -107,7 +111,8 @@ def oauth_authorize(remote_app: RemoteApp):
             oauth_authenticate(remote_app, user)
 
     remote_app.finalize_login(user, token_user_info, token["access_token"])
-    return redirect(get_session_next_url(remote_app.name))
+    db.session.commit()
+    return redirect(get_session_next_url(remote_app))
 
 
 @bp.route("/signup/<remote_app:remote_app>", methods=["GET", "POST"])
@@ -142,9 +147,29 @@ def register(remote_app: RemoteApp):
         else:
             login_user(user)
             remote_app.finalize_login(user, user_info, token["access_token"])
-            return redirect(get_session_next_url(remote_app.name))
+            db.session.commit()
+            return redirect(get_session_next_url(remote_app))
 
     # TODO provide REST endpoint for this as well
+
+
+@bp.route("/disconnect/<remote_app:remote_app>")
+@require_more_than_one_external_account
+def disconnect(remote_app: RemoteApp):
+    if not current_user.is_authenticated:
+        return current_app.login_manager.unauthorized()
+
+    account = RemoteAccount.get(
+        user_id=current_user.get_id(), client_id=remote.consumer_key
+    )
+    remote_app.handle_disconnect(account)
+
+    if account:
+        with db.session.begin_nested():
+            account.delete()
+            UserIdentity.delete_by_user(remote_app.name, account.user)
+
+    db.session.commit()
 
 
 class RemoteAppConverter(BaseConverter):

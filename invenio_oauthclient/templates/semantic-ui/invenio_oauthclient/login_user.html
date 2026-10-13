@@ -12,8 +12,8 @@
 {%- block form_outer %}
   {% if config.OAUTHCLIENT_REMOTE_APPS %}
   <div class="ui form">
-    {% for name, config in config.OAUTHCLIENT_REMOTE_APPS.items() if not config.hide and not config.link_only %}
-      {{ oauth_button(name, next=request.args.get('next')) }}
+    {% for remote_app in config.OAUTHCLIENT_REMOTE_APPS if not remote_app.hide and not remote_app.link_only %}
+      {{ oauth_button(remote_app, next=request.args.get('next')) }}
     {% endfor %}
   </div>
 
