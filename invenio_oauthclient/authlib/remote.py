@@ -128,7 +128,7 @@ class OIDCRemoteApp(RemoteApp):
                 "affiliations": affiliations,
             },
         }
-        external_id = id_token["sub"]
+        external_id = id_token.get("sub", user_info["sub"])
         external_method = self.name
         extra_data = {}
 

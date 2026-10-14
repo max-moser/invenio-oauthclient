@@ -5,11 +5,12 @@ from __future__ import annotations
 
 from collections import UserDict
 
-from authlib.integrations.base_client import MismatchingStateError
+from authlib.integrations.base_client import OAuthError as AuthlibOAuthError
 from flask import Blueprint, current_app, flash, redirect, request, session, url_for
 from flask_login import current_user, login_user
 from invenio_accounts.models import UserIdentity
 from invenio_db import db
+from joserfc.errors import JoseError
 from requests import HTTPError
 from werkzeug.routing import BaseConverter, ValidationError
 
@@ -36,18 +37,23 @@ from .utils import (
 
 class LazyDict(UserDict):
     def __init__(self, load_func):
-        self.data = {}
+        self._data = None
         self.load_func = load_func
 
+    @property
+    def data(self):
+        if self._data is None:
+            self._data = self.load_func()
+        return self._data
+
     def __getitem__(self, key):
-        if not self.data:
-            self.data = self.load_func()
         return self.data[key]
 
     def get(self, key, default=None):
-        if not self.data:
-            self.data = self.load_func()
-        return self.data.get(key, default=default)
+        return self.data.get(key, default)
+
+    def __len__(self):
+        return len(self.data)
 
 
 bp = Blueprint("invenio_authlib_client", __name__)
@@ -68,10 +74,9 @@ def oauth_authorize(remote_app: RemoteApp):
     # Note: Authlib takes care of ID token validation (aud, iss, etc.)
     try:
         token = remote_app.client.authorize_access_token()
-    except MismatchingStateError:
-        # The state of the request and response are mismatched, e.g. when the user
-        # refreshes on the authorize page
-        flash("The login request was stale, please try again.")
+    except (AuthlibOAuthError, JoseError) as e:
+        current_app.logger.error(e)
+        flash("Authentication failed.", category="error")
         return redirect("/")
 
     # The initial ID token may hold very limited information, so we fetch more
@@ -80,14 +85,16 @@ def oauth_authorize(remote_app: RemoteApp):
     def _get_user_info():
         try:
             remote_user_info = remote_app.client.userinfo()
-            assert remote_user_info["sub"] == token["userinfo"]["sub"]
-            return remote_user_info
-        except HTTPError:
+            if "userinfo" in token:
+                assert remote_user_info["sub"] == token["userinfo"]["sub"]
+            return dict(remote_user_info)
+        except HTTPError as e:
+            current_app.logger.error(e)
             return {}
 
     remote_user_info = LazyDict(_get_user_info)
     token_user_info = remote_app.parse_user_info(
-        token["userinfo"], remote_user_info, token["access_token"]
+        token.get("userinfo", {}), remote_user_info, token["access_token"]
     )
     user_info = token_user_info.user
 
