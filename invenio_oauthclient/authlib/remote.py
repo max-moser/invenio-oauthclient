@@ -88,13 +88,13 @@ class RemoteApp(ABC):
         # Explicitly set the external ID in the extra data, to make it easier later
         # to query for the UserIdentity via the RemoteAccount
         user_info.extra_data.setdefault("external_id", user_info.external_id)
-        if remote_token := RemoteToken.get(user.id, self.name):
+        if remote_token := RemoteToken.get(user.id, self.client_id):
             remote_token.update_token(token=access_token, secret="")
             remote_token.remote_account.extra_data = user_info.extra_data
         else:
             RemoteToken.create(
                 user.id,
-                self.name,
+                self.client_id,
                 token=access_token,
                 extra_data=user_info.extra_data,
                 secret="",

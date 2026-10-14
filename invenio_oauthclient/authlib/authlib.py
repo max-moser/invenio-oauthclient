@@ -40,7 +40,7 @@ def fetch_token(remote_app_name: str):
     if session_key not in session and current_user.is_authenticated:
         remote_token = RemoteToken.get(
             current_user.get_id(),
-            remote_app.name,
+            remote_app.client_id,
             token_type="",
         )
         if remote_token is None:
@@ -72,7 +72,7 @@ def refresh_token(remote_app_name: str, token, refresh_token=None, access_token=
             .filter(
                 RemoteToken.refresh_token == refresh_token,
                 RemoteAccount.user_id == current_user.id,
-                RemoteAccount.client_id == remote_app.name,
+                RemoteAccount.client_id == remote_app.client_id,
             )
             .first()
         )
@@ -83,7 +83,7 @@ def refresh_token(remote_app_name: str, token, refresh_token=None, access_token=
             .filter(
                 RemoteToken.access_token == access_token,
                 RemoteAccount.user_id == current_user.id,
-                RemoteAccount.client_id == remote_app.name,
+                RemoteAccount.client_id == remote_app.client_id,
             )
             .first()
         )

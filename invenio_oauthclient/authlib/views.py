@@ -160,7 +160,8 @@ def disconnect(remote_app: RemoteApp):
         return current_app.login_manager.unauthorized()
 
     account = RemoteAccount.get(
-        user_id=current_user.get_id(), client_id=remote.consumer_key
+        user_id=current_user.get_id(),
+        client_id=remote_app.client_id,
     )
     remote_app.handle_disconnect(account)
 

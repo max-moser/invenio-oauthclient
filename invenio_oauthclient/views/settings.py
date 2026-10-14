@@ -52,7 +52,7 @@ def index():
             icon=remote_app.icon,
             description=remote_app.description,
             link_only=remote_app.link_only,
-            account=accounts_by_app.get(remote_app.name, None),
+            account=accounts_by_app.get(remote_app.client_id, None),
         )
         services.append(remote_info)
 

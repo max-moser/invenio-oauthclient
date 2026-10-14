@@ -48,7 +48,7 @@ def oauth_authenticate(
     after_this_request(_commit)
     if login_user(user):
         if require_existing_link:
-            account = RemoteAccount.get(user.id, remote_app.name)
+            account = RemoteAccount.get(user.id, remote_app.client_id)
             if account is None:
                 logout_user()
                 return False
@@ -66,7 +66,7 @@ def oauth_get_user(
     the user object.
     """
     if access_token:
-        token = RemoteToken.get_by_token(remote_app.name, access_token)
+        token = RemoteToken.get_by_token(remote_app.client_id, access_token)
         if token:
             return token.remote_account.user
 
