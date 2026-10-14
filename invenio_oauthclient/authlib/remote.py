@@ -28,6 +28,7 @@ class RemoteApp(ABC):
         title: str = "",
         description: str = "",
         icon: str = "",
+        client_kwargs: dict | None = None,
     ):
         self.name = name
         self.client_id = client_id
@@ -44,6 +45,7 @@ class RemoteApp(ABC):
         self.server_metadata = {}
         self.client = None
         self.registration_form = None
+        self.client_kwargs = client_kwargs or {}
 
         if isinstance(server_metadata, str):
             self.server_metadata_url = server_metadata
@@ -60,6 +62,7 @@ class RemoteApp(ABC):
             client_secret=self.client_secret,
             client_kwargs={
                 "scope": self.scope,
+                **self.client_kwargs,
             },
             compliance_fix=self.register_compliance_fixes,
             **self.server_metadata,

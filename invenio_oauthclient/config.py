@@ -334,11 +334,12 @@ OAUTHCLIENT_REMOTE_APPS = [
     OIDCRemoteApp(
         "test2",
         "https://oidcmock.dev/.well-known/openid-configuration",
-        "dev2",
-        "the test idp takes any secret",
+        "confidential_client",
+        "somesecretthisis",
         "openid email profile extras",
         title="Yet another Test",
         icon="fa fa-github",
+        client_kwargs={"token_endpoint_auth_method": "client_secret_post"},
     )
 ]
 """Configuration of remote applications."""
