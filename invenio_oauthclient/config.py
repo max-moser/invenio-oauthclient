@@ -325,18 +325,18 @@ OAUTHCLIENT_REMOTE_APPS = [
     # Randomized test OP: https://oauth.sdk42.com/
     # keyword: "hosted mock oidc provider"
     OIDCRemoteApp(
-        "test",
-        "https://oauth.wiremockapi.cloud/.well-known/openid-configuration",
-        "dev",
-        "the test idp takes any secret",
-        "openid email profile extras",
+        name="test",
+        server_metadata="https://oauth.wiremockapi.cloud/.well-known/openid-configuration",
+        client_id="dev",
+        client_secret="the test idp takes any secret",
+        scope="openid email profile extras",
     ),
     OIDCRemoteApp(
-        "test2",
-        "https://oidcmock.dev/.well-known/openid-configuration",
-        "confidential_client",
-        "somesecretthisis",
-        "openid email profile extras",
+        name="test2",
+        server_metadata="https://oidcmock.dev/.well-known/openid-configuration",
+        client_id="confidential_client",
+        client_secret="somesecretthisis",
+        scope="openid email profile extras",
         title="Yet another Test",
         icon="fa fa-github",
         client_kwargs={"token_endpoint_auth_method": "client_secret_post"},
