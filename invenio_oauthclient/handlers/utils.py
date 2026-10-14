@@ -14,6 +14,7 @@ from invenio_i18n import gettext as _
 from werkzeug.utils import import_string
 
 from ..models import RemoteAccount
+from ..proxies import current_oauthclient
 
 
 def make_handler(f, remote, with_response=True):
@@ -69,27 +70,27 @@ def require_more_than_one_external_account(f):
         )
         password_set = current_user.password is not None
         local_login_possible = local_login_enabled and password_set
+        if local_login_possible:
+            return f(*args, **kwargs)
 
-        remote_apps = current_app.config["OAUTHCLIENT_REMOTE_APPS"]
-        accounts = RemoteAccount.query.filter_by(user_id=current_user.get_id()).all()
+        client_ids = {
+            remote_app.client_id
+            for remote_app in current_oauthclient.clients.values()
+            if not remote_app.hidden
+        }
+        linked_accounts = RemoteAccount.query.filter(
+            RemoteAccount.user_id == current_user.get_id(),
+            RemoteAccount.client_id.in_(client_ids),
+        ).all()
 
         # find out all of the linked external accounts for the user
         # that are currently configured and not hidden
-        consumer_keys = set()
-        remote_apps = current_app.config["OAUTHCLIENT_REMOTE_APPS"]
-        for name, remote_app in remote_apps.items():
-            if not remote_app.get("hide", False):
-                consumer_keys.add(name)  # backcompat with v1.5.4
-                remote_app_config = current_app.config[remote_app["params"]["app_key"]]
-                consumer_keys.add(remote_app_config["consumer_key"])
-
-        linked_accounts = [acc for acc in accounts if acc.client_id in consumer_keys]
+        # linked_accounts = [acc for acc in accounts if acc.client_id in client_ids]
 
         # execute the function only if local login is possible, or
         # there's more than one linked external account
-        if local_login_possible or len(linked_accounts) > 1:
+        if len(linked_accounts) > 1:
             return f(*args, **kwargs)
-
         else:
             abort(400)
 

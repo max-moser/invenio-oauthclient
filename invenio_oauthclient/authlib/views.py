@@ -171,6 +171,7 @@ def disconnect(remote_app: RemoteApp):
             UserIdentity.delete_by_user(remote_app.name, account.user)
 
     db.session.commit()
+    return redirect(url_for("invenio_oauthclient_settings.index"))
 
 
 class RemoteAppConverter(BaseConverter):
