@@ -94,7 +94,7 @@ def oauth_authorize(remote_app: RemoteApp):
 
     remote_user_info = LazyDict(_get_user_info)
     token_user_info = remote_app.parse_user_info(
-        token.get("userinfo", {}), remote_user_info, token["access_token"]
+        token.get("userinfo", {}), remote_user_info, token.get("access_token")
     )
     user_info = token_user_info.user
 

@@ -110,14 +110,12 @@ class OIDCRemoteApp(RemoteApp):
     def parse_user_info(
         self, id_token: dict, user_info: dict, access_token: str
     ) -> UserInfo:
-        user_info = user_info or {}  # prevent errors when accessing None.get(...)
-
         email = id_token.get("email") or user_info["email"]
         full_name = id_token.get("name") or user_info.get("name")
         username = id_token.get("preferred_username") or user_info.get(
             "preferred_username"
         )
-        affiliations = id_token.get("affiliation", user_info.get("affiliation")) or ""
+        affiliations = id_token.get("affiliation") or user_info.get("affiliation") or ""
 
         user = {
             "active": True,
@@ -128,7 +126,7 @@ class OIDCRemoteApp(RemoteApp):
                 "affiliations": affiliations,
             },
         }
-        external_id = id_token.get("sub", user_info["sub"])
+        external_id = id_token.get("sub") or user_info["sub"]
         external_method = self.name
         extra_data = {}
 
