@@ -118,6 +118,7 @@ def oauth_authorize(remote_app: RemoteApp):
             oauth_authenticate(remote_app, user)
 
     remote_app.finalize_login(user, token_user_info, token["access_token"])
+    session["OAUTHCLIENT_SESSION_REMOTE_NAME"] = remote_app.name
     db.session.commit()
     return redirect(get_session_next_url(remote_app))
 
@@ -179,6 +180,20 @@ def disconnect(remote_app: RemoteApp):
 
     db.session.commit()
     return redirect(url_for("invenio_oauthclient_settings.index"))
+
+
+@bp.route("/oauth/logout")
+def post_logout():
+    """Client logout view.
+
+    This URL should be called by setting `SECURITY_POST_LOGOUT_VIEW = /oauth/logout`
+    """
+    remote_name = session.pop("OAUTHCLIENT_SESSION_REMOTE_NAME", None)
+    clients = current_oauthclient.clients
+    if remote_name and (logout_url := clients[remote_name].logout_url):
+        return redirect(logout_url, code=302)
+
+    return redirect("/")
 
 
 class RemoteAppConverter(BaseConverter):

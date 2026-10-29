@@ -263,20 +263,3 @@ def rest_disconnect(remote_app):
         return _disconnect(remote_app)
     except OAuthRemoteNotFound:
         abort(404)
-
-
-@blueprint.route("/logout")
-def post_logout():
-    """Client logout view.
-
-    This URL should be called by setting `SECURITY_POST_LOGOUT_VIEW = /oauth/logout`
-    """
-    remote_name = session.pop("OAUTHCLIENT_SESSION_REMOTE_NAME", None)
-    if remote_name:
-        logout_url = current_app.config["OAUTHCLIENT_REMOTE_APPS"][remote_name].get(
-            "logout_url"
-        )
-        if logout_url:
-            return redirect(logout_url, code=302)
-
-    return redirect("/")

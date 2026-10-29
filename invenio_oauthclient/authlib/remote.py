@@ -29,6 +29,7 @@ class RemoteApp(ABC):
         description: str = "",
         icon: str = "",
         client_kwargs: dict | None = None,
+        logout_url: str | None = None,
     ):
         self.name = name
         self.client_id = client_id
@@ -46,6 +47,7 @@ class RemoteApp(ABC):
         self.client = None
         self.registration_form = None
         self.client_kwargs = client_kwargs or {}
+        self.logout_url = logout_url
 
         if isinstance(server_metadata, str):
             self.server_metadata_url = server_metadata
