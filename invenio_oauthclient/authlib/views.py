@@ -6,7 +6,15 @@ from __future__ import annotations
 from collections import UserDict
 
 from authlib.integrations.base_client import OAuthError as AuthlibOAuthError
-from flask import Blueprint, current_app, flash, redirect, request, session, url_for
+from flask import (
+    Blueprint,
+    current_app,
+    flash,
+    redirect,
+    request,
+    session,
+    url_for,
+)
 from flask_login import current_user, login_user
 from invenio_accounts.models import UserIdentity
 from invenio_db import db
@@ -14,7 +22,6 @@ from joserfc.errors import JoseError
 from requests import HTTPError
 from werkzeug.routing import BaseConverter, ValidationError
 
-from ..handlers.utils import require_more_than_one_external_account
 from ..models import RemoteAccount
 from ..proxies import current_oauthclient
 from ..utils import (
@@ -31,6 +38,7 @@ from .utils import (
     oauth_authenticate,
     oauth_get_user,
     oauth_register,
+    require_more_than_one_external_account,
     set_session_next_url,
 )
 

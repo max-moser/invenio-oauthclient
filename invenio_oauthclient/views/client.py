@@ -9,10 +9,10 @@ from invenio_accounts.views import login as base_login
 from invenio_db import db
 from itsdangerous import BadData
 
+from ..authlib.utils import set_session_next_url
 from .._compat import _create_identifier
 from ..errors import OAuthRemoteNotFound
-from ..handlers import set_session_next_url
-from ..handlers.rest import response_handler
+# from ..handlers.rest import response_handler
 from ..proxies import current_oauthclient
 from ..utils import get_safe_redirect_target, serializer
 

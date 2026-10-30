@@ -3,11 +3,15 @@
 
 from __future__ import annotations
 
+from functools import wraps
+
 from flask import (
+    abort,
     after_this_request,
     current_app,
     session,
 )
+from flask_login import current_user
 from flask_security import login_user, logout_user
 from flask_security.confirmable import confirm_user, requires_confirmation
 from invenio_accounts.models import User, UserIdentity
@@ -16,6 +20,7 @@ from invenio_db import db
 
 from ..models import RemoteAccount, RemoteToken
 from ..oauth import _commit, _datastore
+from ..proxies import current_oauthclient
 from ..utils import (
     filter_user_info,
     patch_dictionary,
@@ -170,3 +175,78 @@ def fill_form(form, data):
             elif field is not None:
                 field.data = value
     return form
+
+
+def token_delete(remote, token=""):
+    """Remove OAuth access tokens from session.
+
+    :param remote: The remote application.
+    :param token: Type of token to get. Data passed from ``oauth.request()``
+        to identify which token to retrieve. (Default: ``''``)
+    :returns: The token.
+    """
+    session_key = token_session_key(remote.name)
+    return session.pop(session_key, None)
+
+
+def oauth_logout_handler(sender_app, user=None):
+    """Remove all access tokens and OAuth session data on logout.
+
+    This includes:
+    - OAuth tokens for all remote apps
+    - Unmanaged roles (groups) from the session
+    """
+    for remote in current_oauthclient.clients.values():
+        token_delete(remote)
+
+    # Clear unmanaged roles (groups) from session
+    # These are set during OAuth login when a groups handler is configured
+    session.pop("unmanaged_roles_ids", None)
+
+    db.session.commit()
+
+
+def require_more_than_one_external_account(f):
+    """Require that the user has more than one external account for login.
+
+    If the user only has one linked external account and no means for logging
+    in via local credentials, the decorated function won't be executed.
+    This decorator is useful for disconnect handlers, to prevent users from
+    disconnecting their last potential means of authentication.
+    """
+
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if current_user.is_anonymous:
+            return f(*args, **kwargs)
+
+        local_login_enabled = current_app.config.get(
+            "ACCOUNTS_LOCAL_LOGIN_ENABLED", True
+        )
+        password_set = current_user.password is not None
+        local_login_possible = local_login_enabled and password_set
+        if local_login_possible:
+            return f(*args, **kwargs)
+
+        client_ids = {
+            remote_app.client_id
+            for remote_app in current_oauthclient.clients.values()
+            if not remote_app.hidden
+        }
+        linked_accounts = RemoteAccount.query.filter(
+            RemoteAccount.user_id == current_user.get_id(),
+            RemoteAccount.client_id.in_(client_ids),
+        ).all()
+
+        # find out all of the linked external accounts for the user
+        # that are currently configured and not hidden
+        # linked_accounts = [acc for acc in accounts if acc.client_id in client_ids]
+
+        # execute the function only if local login is possible, or
+        # there's more than one linked external account
+        if len(linked_accounts) > 1:
+            return f(*args, **kwargs)
+        else:
+            abort(400)
+
+    return decorated

@@ -17,9 +17,10 @@ from invenio_theme.proxies import current_theme_icons
 
 from invenio_oauthclient._compat import monkey_patch_werkzeug
 
-from . import config, handlers
+from . import config
 from .authlib.authlib import fetch_token, refresh_token
 from .authlib.remote import RemoteApp
+from .authlib.utils import oauth_logout_handler
 from .authlib.views import bp
 from .utils import (
     load_user_role_needs,
@@ -45,15 +46,7 @@ class AuthlibInvenioIntegration(AuthlibFlaskIntegration):
 class _OAuthClientState:
     """OAuth client state storing registered actions."""
 
-    def __init__(
-        self,
-        app,
-        remote_app_config_key,
-        default_disconnect_handler,
-        default_authorized_handler,
-        default_remote_app_response_handler=None,
-        default_response_handler=None,
-    ):
+    def __init__(self, app):
         """Initialize state."""
         self.app = app
 
@@ -63,7 +56,7 @@ class _OAuthClientState:
             load_user_role_needs(identity)
 
         # Connect signal to remove access tokens on logout
-        user_logged_out.connect(handlers.oauth_logout_handler)
+        user_logged_out.connect(oauth_logout_handler)
 
         self.oauth = OAuth(fetch_token=fetch_token, update_token=refresh_token)
         self.oauth.framework_integration_cls = AuthlibInvenioIntegration
@@ -182,9 +175,9 @@ class InvenioOAuthClient:
         """Flask application initialization."""
         state = _OAuthClientState(
             app,
-            "OAUTHCLIENT_REMOTE_APPS",
-            handlers.disconnect_handler,
-            handlers.authorized_default_handler,
+            # "OAUTHCLIENT_REMOTE_APPS",
+            # handlers.disconnect_handler,
+            # handlers.authorized_default_handler,
         )
         app.extensions["invenio-oauthclient"] = state
         return state
@@ -200,19 +193,17 @@ class InvenioOAuthClientREST:
 
     def init_app(self, app):
         """Flask application initialization."""
-        _default_response_handler = obj_or_import_string(
-            app.config.get("OAUTHCLIENT_REST_DEFAULT_RESPONSE_HANDLER"),
-            handlers.rest.default_response_handler,
-        )
-        _default_remote_handler = handlers.rest.default_remote_response_handler
-        state = _OAuthClientState(
-            app,
-            "OAUTHCLIENT_REST_REMOTE_APPS",
-            handlers.rest.disconnect_handler,
-            handlers.rest.authorized_default_handler,
-            default_remote_app_response_handler=_default_remote_handler,
-            default_response_handler=_default_response_handler,
-        )
+        # _default_response_handler = obj_or_import_string(
+        #     app.config.get("OAUTHCLIENT_REST_DEFAULT_RESPONSE_HANDLER"),
+        #     handlers.rest.default_response_handler,
+        # )
+        # _default_remote_handler = handlers.rest.default_remote_response_handler
+        state = _OAuthClientState(app)
+        # "OAUTHCLIENT_REST_REMOTE_APPS",
+        # handlers.rest.disconnect_handler,
+        # handlers.rest.authorized_default_handler,
+        # default_remote_app_response_handler=_default_remote_handler,
+        # default_response_handler=_default_response_handler,
 
         app.extensions["invenio-oauthclient"] = state
         return state
