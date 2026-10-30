@@ -54,6 +54,7 @@ class RemoteApp(ABC):
             self.server_metadata_url = server_metadata
         else:
             self.server_metadata = asdict(server_metadata)
+            self.client_kwargs.update(self.server_metadata.pop("client_kwargs", {}))
 
     def register(self, oauth: OAuth) -> FlaskOAuth2App:
         # TODO use server_metadata if not server_metadata_url
