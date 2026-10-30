@@ -66,10 +66,10 @@ class LazyDict(UserDict):
         return len(self.data)
 
 
-bp = Blueprint("invenio_authlib_client", __name__)
+blueprint = Blueprint("invenio_authlib_client", __name__, url_prefix="/oauth")
 
 
-@bp.route("/login/<remote_app:remote_app>")
+@blueprint.route("/login/<remote_app:remote_app>")
 def login(remote_app: RemoteApp):
     """Start the authentication workflow with the given remote app."""
     next_param = get_safe_redirect_target(arg="next")
@@ -79,7 +79,7 @@ def login(remote_app: RemoteApp):
     return remote_app.client.authorize_redirect(redirect_url)
 
 
-@bp.route("/oauth/authorized/<remote_app:remote_app>")
+@blueprint.route("/authorized/<remote_app:remote_app>")
 def oauth_authorize(remote_app: RemoteApp):
     # Note: Authlib takes care of ID token validation (aud, iss, etc.)
     try:
@@ -143,7 +143,7 @@ def oauth_authorize(remote_app: RemoteApp):
     return redirect(get_session_next_url(remote_app))
 
 
-@bp.route("/signup/<remote_app:remote_app>", methods=["GET", "POST"])
+@blueprint.route("/signup/<remote_app:remote_app>", methods=["GET", "POST"])
 def register(remote_app: RemoteApp):
     form = create_registrationform(request.form, oauth_remote_app=remote_app)
 
@@ -193,7 +193,7 @@ def register(remote_app: RemoteApp):
     # TODO provide REST endpoint for this as well
 
 
-@bp.route("/disconnect/<remote_app:remote_app>")
+@blueprint.route("/disconnect/<remote_app:remote_app>")
 @require_more_than_one_external_account
 def disconnect(remote_app: RemoteApp):
     if not current_user.is_authenticated:
@@ -214,7 +214,7 @@ def disconnect(remote_app: RemoteApp):
     return redirect(url_for("invenio_oauthclient_settings.index"))
 
 
-@bp.route("/oauth/logout")
+@blueprint.route("/logout")
 def post_logout():
     """Client logout view.
 
@@ -228,7 +228,7 @@ def post_logout():
     return redirect("/")
 
 
-@bp.route("/login")
+@blueprint.route("/login")
 def auto_redirect_login(*args, **kwargs):
     """Handles automatic redirect to external auth service.
 

@@ -19,7 +19,7 @@ from . import config
 from .authlib.authlib import fetch_token, refresh_token
 from .authlib.remote import RemoteApp
 from .authlib.utils import oauth_logout_handler
-from .authlib.views import bp
+from .authlib.views import blueprint
 from .utils import (
     load_user_role_needs,
     obj_or_import_string,
@@ -150,7 +150,7 @@ class _OAuthClientState:
         #         "CERN Remote app is deprecated, use CERN OpenID instead.",
         #         DeprecationWarning,
         #     )
-        app.register_blueprint(bp)
+        app.register_blueprint(blueprint)
 
     def init_config(self, app):
         """Initialize configuration."""
