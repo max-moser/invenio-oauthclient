@@ -102,15 +102,18 @@ def oauth_authorize(remote_app: RemoteApp):
             current_app.logger.error(e)
             return {}
 
+    access_token = token.get("access_token")
     remote_user_info = LazyDict(_get_user_info)
     token_user_info = remote_app.parse_user_info(
-        token.get("userinfo", {}), remote_user_info, token.get("access_token")
+        token.get("userinfo", {}), remote_user_info, access_token
     )
     user_info = token_user_info.user
 
     # TODO check if access_token is supposed to be present
-    if user := oauth_get_user(remote_app, token_user_info, token.get("access_token")):
-        oauth_authenticate(remote_app, user)
+    if user := oauth_get_user(remote_app, token_user_info, access_token):
+        if not oauth_authenticate(remote_app, user):
+            # TODO handle login failure
+            pass
 
     else:
         flash(f"User not found for user info: {user_info}")
@@ -125,7 +128,9 @@ def oauth_authorize(remote_app: RemoteApp):
             session[f"{remote_app.name}_token"] = token
             return redirect(url_for(".register", remote_app=remote_app))
         else:
-            oauth_authenticate(remote_app, user)
+            if not oauth_authenticate(remote_app, user):
+                # TODO handle login failure
+                pass
 
     # NOTE: the refresh token typically only gets supplied if "offline_access" is in the scope
     expires_at = (
