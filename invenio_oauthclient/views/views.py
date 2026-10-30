@@ -21,15 +21,14 @@ from invenio_accounts.views import login as base_login
 from invenio_db import db
 from joserfc.errors import JoseError
 from requests import HTTPError
-from werkzeug.routing import BaseConverter, ValidationError
 
 from ..models import RemoteAccount
 from ..proxies import current_oauthclient
-from .authlib import _render_signup_form
-from .errors import OAuthError
-from .remote import RemoteApp
-from .utils import (
+from ..errors import OAuthError
+from ..remote import RemoteApp
+from ..utils import (
     create_csrf_disabled_registrationform,
+    _render_signup_form,
     create_registrationform,
     fill_form,
     get_safe_redirect_target,
@@ -262,18 +261,3 @@ def auto_redirect_login(*args, **kwargs):
 
     else:
         return base_login(*args, **kwargs)
-
-
-class RemoteAppConverter(BaseConverter):
-    """Endpoint converter validating that the remote app is known."""
-
-    def to_python(self, value: str) -> RemoteApp:
-        try:
-            return current_oauthclient.clients[value]
-        except KeyError:
-            raise ValidationError(f"{value} is not a known remote app")
-
-    def to_url(self, value: RemoteApp | str) -> str:
-        if isinstance(value, RemoteApp):
-            return value.name
-        return value

@@ -30,9 +30,9 @@ from uritools import uricompose, urisplit
 from werkzeug.local import LocalProxy
 from werkzeug.utils import import_string
 
-from ..models import RemoteAccount, RemoteToken
-from ..oauth import _commit, _datastore
-from ..proxies import current_oauthclient
+from .models import RemoteAccount, RemoteToken
+from .oauth import _commit, _datastore
+from .proxies import current_oauthclient
 from .data import UserInfo
 from .remote import RemoteApp
 

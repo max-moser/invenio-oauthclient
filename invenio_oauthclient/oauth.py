@@ -96,7 +96,13 @@ def oauth_register(form, user_info=None, precedence_mask=None, signup_options={}
     :param signup_options: Extra signup options dict.
     :returns: A :class:`invenio_accounts.models.User` instance.
     """
-    from .authlib.utils import fill_form, filter_user_info, patch_dictionary, remove_csrf_tokens, remove_none_values
+    from .utils import (
+        fill_form,
+        filter_user_info,
+        patch_dictionary,
+        remove_csrf_tokens,
+        remove_none_values,
+    )
 
     if form.validate():
         form_data = form.data

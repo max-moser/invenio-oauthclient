@@ -17,14 +17,14 @@ from invenio_i18n import lazy_gettext as _
 from invenio_theme.proxies import current_theme_icons
 
 from . import config
-from .authlib.authlib import fetch_token, refresh_token
-from .authlib.remote import RemoteApp
-from .authlib.utils import (
+from .utils import fetch_token, refresh_token
+from .remote import RemoteApp
+from .utils import (
     load_user_role_needs,
     oauth_logout_handler,
     obj_or_import_string,
 )
-from .authlib.views import blueprint
+from .views import blueprint
 
 # from flask_oauthlib.client import OAuth as FlaskOAuth
 from flask_oauthlib.client import OAuthRemoteApp  # noqa isort:skip
