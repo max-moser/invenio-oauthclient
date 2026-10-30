@@ -15,8 +15,6 @@ from invenio_i18n import LazyString
 from invenio_i18n import lazy_gettext as _
 from invenio_theme.proxies import current_theme_icons
 
-from invenio_oauthclient._compat import monkey_patch_werkzeug
-
 from . import config
 from .authlib.authlib import fetch_token, refresh_token
 from .authlib.remote import RemoteApp
@@ -26,8 +24,6 @@ from .utils import (
     load_user_role_needs,
     obj_or_import_string,
 )
-
-monkey_patch_werkzeug()
 
 from authlib.integrations.flask_client import OAuth
 
