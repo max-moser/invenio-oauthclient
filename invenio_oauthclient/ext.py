@@ -82,6 +82,11 @@ class _OAuthClientState:
             self.clients[remote_app.name] = remote_app
             remote_app.register(self.oauth)
 
+        if len({c.client_id for c in self.clients.values()}) != len(self.clients):
+            app.logger.warning(
+                "Multiple OAuthClient remote apps are using the same Client ID, this will behave unexpectedly!"
+            )
+
         # self.default_response_handler = default_response_handler or dummy_handler
         #
         # for remote_app, conf in app.config[remote_app_config_key].items():
