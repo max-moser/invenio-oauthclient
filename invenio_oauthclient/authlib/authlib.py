@@ -13,7 +13,7 @@ from invenio_db import db
 from ..models import RemoteAccount, RemoteToken
 from ..proxies import current_oauthclient
 from .remote import RemoteApp
-from .utils import fill_form
+from .utils import fill_form, format_expires_at, parse_expires_at
 
 
 def _render_signup_form(remote_app: RemoteApp, form, account_info: dict):
@@ -50,7 +50,7 @@ def fetch_token(remote_app_name: str):
             "access_token": remote_token.access_token,
             "token_type": remote_token.token_type,
             "refresh_token": remote_token.refresh_token,
-            "expires_at": remote_token.expires,
+            "expires_at": format_expires_at(remote_token.expires),
         }
         session[session_key] = token
         return token
@@ -92,6 +92,9 @@ def refresh_token(remote_app_name: str, token, refresh_token=None, access_token=
 
     if stored_token:
         stored_token.update_token(
-            token["access_token"], "", token["refresh_token"], token["expires_at"]
+            token["access_token"],
+            "",
+            token.get("refresh_token"),
+            parse_expires_at(token.get("expires_at")),
         )
         db.session.commit()

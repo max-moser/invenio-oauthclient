@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from functools import wraps
 
 from flask import (
@@ -254,3 +255,18 @@ def require_more_than_one_external_account(f):
             abort(400)
 
     return decorated
+
+
+def parse_expires_at(timestamp: float | None) -> datetime | None:
+    """Parse the UNIX timestamp into a datetime."""
+    if timestamp is None:
+        return None
+
+    return datetime.fromtimestamp(timestamp, tz=UTC)
+
+
+def format_expires_at(expires: datetime | None) -> int | None:
+    """Convert a datetime to a UNIX timestamp for authlib."""
+    if expires is None:
+        return None
+    return int(expires.timestamp())

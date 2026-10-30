@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 from collections import UserDict
-from datetime import datetime
 
 from authlib.integrations.base_client import OAuthError as AuthlibOAuthError
 from flask import (
@@ -40,6 +39,7 @@ from .utils import (
     oauth_authenticate,
     oauth_get_user,
     oauth_register,
+    parse_expires_at,
     require_more_than_one_external_account,
     set_session_next_url,
 )
@@ -133,15 +133,12 @@ def oauth_authorize(remote_app: RemoteApp):
                 pass
 
     # NOTE: the refresh token typically only gets supplied if "offline_access" is in the scope
-    expires_at = (
-        datetime.fromtimestamp(token["expires_at"]) if "expires_at" in token else None
-    )
     remote_app.finalize_login(
         user,
         token_user_info,
         access_token,
         refresh_token=token.get("refresh_token"),
-        expires_at=expires_at,
+        expires_at=parse_expires_at(token.get("expires_at")),
     )
     session["OAUTHCLIENT_SESSION_REMOTE_NAME"] = remote_app.name
     db.session.commit()
@@ -180,17 +177,12 @@ def register(remote_app: RemoteApp):
         else:
             login_user(user)
             # NOTE: the refresh token typically only gets supplied if "offline_access" is in the scope
-            expires_at = (
-                datetime.fromtimestamp(token["expires_at"])
-                if "expires_at" in token
-                else None
-            )
             remote_app.finalize_login(
                 user,
                 user_info,
                 token["access_token"],
                 refresh_token=token.get("refresh_token"),
-                expires_at=expires_at,
+                expires_at=parse_expires_at(token.get("expires_at")),
             )
             db.session.commit()
             return redirect(get_session_next_url(remote_app))
