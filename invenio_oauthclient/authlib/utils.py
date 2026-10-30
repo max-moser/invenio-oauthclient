@@ -11,6 +11,7 @@ from flask import (
     current_app,
     session,
 )
+from flask.sansio.app import App
 from flask_login import current_user
 from flask_security import login_user, logout_user
 from flask_security.confirmable import confirm_user, requires_confirmation
@@ -177,7 +178,7 @@ def fill_form(form, data):
     return form
 
 
-def token_delete(remote, token=""):
+def token_delete(remote_app: RemoteApp, token: str = ""):
     """Remove OAuth access tokens from session.
 
     :param remote: The remote application.
@@ -185,11 +186,11 @@ def token_delete(remote, token=""):
         to identify which token to retrieve. (Default: ``''``)
     :returns: The token.
     """
-    session_key = token_session_key(remote.name)
+    session_key = token_session_key(remote_app)
     return session.pop(session_key, None)
 
 
-def oauth_logout_handler(sender_app, user=None):
+def oauth_logout_handler(sender_app: App, user: User | None = None):
     """Remove all access tokens and OAuth session data on logout.
 
     This includes:

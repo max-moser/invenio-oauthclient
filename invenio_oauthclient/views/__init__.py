@@ -3,10 +3,8 @@
 
 """Blueprints for oauthclient."""
 
-from .client import blueprint as client_blueprint
 from .settings import blueprint as settings_blueprint
 
 blueprints = [
-    client_blueprint,
     settings_blueprint,
 ]

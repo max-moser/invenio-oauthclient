@@ -33,6 +33,7 @@ class RemoteInfo:
 
 
 @blueprint.route("/", methods=["GET", "POST"])
+@blueprint.route("", methods=["GET", "POST"])
 @login_required
 def index():
     """List linked accounts."""

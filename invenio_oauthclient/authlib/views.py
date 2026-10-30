@@ -17,6 +17,7 @@ from flask import (
 )
 from flask_login import current_user, login_user
 from invenio_accounts.models import UserIdentity
+from invenio_accounts.views import login as base_login
 from invenio_db import db
 from joserfc.errors import JoseError
 from requests import HTTPError
@@ -202,6 +203,47 @@ def post_logout():
         return redirect(logout_url, code=302)
 
     return redirect("/")
+
+
+@bp.route("/login")
+def auto_redirect_login(*args, **kwargs):
+    """Handles automatic redirect to external auth service.
+
+    The login endpoint will redirect automatically to the external
+    auth service if the following conditions are met:
+
+    * local login is disabled
+    * redirect to external login is enabled
+    * only one external auth service is configured
+
+    This function should be set as value of the invenio-accounts
+    config var ``ACCOUNTS_LOGIN_VIEW_FUNCTION``. It should be defined in
+    the Invenio application configuration to ensure that is correctly loaded.
+    """
+    local_login_enabled = current_app.config.get("ACCOUNTS_LOCAL_LOGIN_ENABLED", False)
+    auto_redirect_enabled = current_app.config.get(
+        "OAUTHCLIENT_AUTO_REDIRECT_TO_EXTERNAL_LOGIN", False
+    )
+    would_redirect = auto_redirect_enabled and not local_login_enabled
+    remote_apps = current_oauthclient.clients.values()
+    visible_remote_apps = [
+        app for app in remote_apps if not app.hidden and not app.link_only
+    ]
+
+    if would_redirect and len(visible_remote_apps) == 1:
+        redirect_args = {
+            # if local login is disabled and we only have one OAuth2 remote app
+            # configured, we forward directly to that
+            "remote_app": visible_remote_apps[0],
+        }
+        next_url = request.args.get("next")
+        if next_url:
+            redirect_args["next"] = next_url
+        url = url_for("invenio_authlib_client.login", **redirect_args)
+        return redirect(url)
+
+    else:
+        return base_login(*args, **kwargs)
 
 
 class RemoteAppConverter(BaseConverter):
