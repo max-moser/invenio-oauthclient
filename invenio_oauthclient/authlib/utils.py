@@ -199,6 +199,9 @@ def oauth_logout_handler(sender_app: App, user: User | None = None):
     """
     for remote in current_oauthclient.clients.values():
         token_delete(remote)
+        session.pop(f"{remote.name}_token", None)
+        session.pop(f"{remote.name}_remote_token", None)
+        session.pop(f"{remote.name}_userinfo", None)
 
     # Clear unmanaged roles (groups) from session
     # These are set during OAuth login when a groups handler is configured
