@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from abc import ABC
 from dataclasses import asdict
+from datetime import datetime
 
 from authlib.integrations.flask_client import FlaskOAuth2App, OAuth
 from authlib.oauth2.client import OAuth2Client
@@ -78,7 +79,12 @@ class RemoteApp(ABC):
     ) -> UserInfo: ...
 
     def finalize_login(
-        self, user: User, user_info: UserInfo, access_token: str
+        self,
+        user: User,
+        user_info: UserInfo,
+        access_token: str,
+        refresh_token: str | None = None,
+        expires_at: datetime | None = None,
     ) -> None:
         user_identity = (
             db.session.query(UserIdentity)
@@ -94,7 +100,12 @@ class RemoteApp(ABC):
         # to query for the UserIdentity via the RemoteAccount
         user_info.extra_data.setdefault("external_id", user_info.external_id)
         if remote_token := RemoteToken.get(user.id, self.client_id):
-            remote_token.update_token(token=access_token, secret="")
+            remote_token.update_token(
+                token=access_token,
+                secret="",
+                refresh_token=refresh_token,
+                expires=expires_at,
+            )
             remote_token.remote_account.extra_data = user_info.extra_data
         else:
             RemoteToken.create(
@@ -102,6 +113,8 @@ class RemoteApp(ABC):
                 self.client_id,
                 token=access_token,
                 extra_data=user_info.extra_data,
+                refresh_token=refresh_token,
+                expires=expires_at,
                 secret="",
             )
 

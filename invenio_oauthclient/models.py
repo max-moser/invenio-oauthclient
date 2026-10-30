@@ -192,27 +192,6 @@ class RemoteToken(db.Model, db.Timestamp):
                 self.expires = expires
                 db.session.add(self)
 
-    def refresh_access_token(self):
-        """Refresh the access token.
-
-        Warning: due to the irreversibility of the OAuth refresh call, this method calls `db.session.commit()`. Make sure
-        to call this method _before_ any business logic that is intended to be rollbackable, as this call may inadvertently
-        commit unrelated transactions.
-        """
-        if not self.refresh_token:
-            raise ValueError("No refresh token available")
-        from .handlers.refresh import refresh_access_token
-
-        access_token, refresh_token, expires = refresh_access_token(self)
-        # Refresh tokens are a feature only in OAuth 2.0, so we never store a secret.
-        self.update_token(access_token, "", refresh_token, expires)
-        # Refreshing the token is an operation that cannot be rolled back. The old access token is usually not invalidated
-        # (this is not required by the RFC but is allowed), but e.g. if the server issues a new refresh token that is something
-        # we cannot undo. The old token may be revoked. Therefore, we must commit the update straight away: rolling back the
-        # token update would create an inconsistency and we risk permanently losing access to the remote account.
-        # See RFC 6749 Section 6 for more details.
-        db.session.commit()
-
     @classmethod
     def get(cls, user_id, client_id, token_type="", access_token=None):
         """Get RemoteToken for user.
