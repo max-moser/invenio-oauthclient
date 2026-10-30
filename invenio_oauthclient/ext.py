@@ -4,6 +4,7 @@
 
 """Invenio-OAuthClient provides OAuth web authorization support."""
 
+from authlib.integrations.flask_client import OAuth
 from authlib.integrations.flask_client.integration import (
     FlaskIntegration as AuthlibFlaskIntegration,
 )
@@ -18,14 +19,12 @@ from invenio_theme.proxies import current_theme_icons
 from . import config
 from .authlib.authlib import fetch_token, refresh_token
 from .authlib.remote import RemoteApp
-from .authlib.utils import oauth_logout_handler
-from .authlib.views import blueprint
-from .utils import (
+from .authlib.utils import (
     load_user_role_needs,
+    oauth_logout_handler,
     obj_or_import_string,
 )
-
-from authlib.integrations.flask_client import OAuth
+from .authlib.views import blueprint
 
 # from flask_oauthlib.client import OAuth as FlaskOAuth
 from flask_oauthlib.client import OAuthRemoteApp  # noqa isort:skip

@@ -340,7 +340,7 @@ OAUTHCLIENT_REMOTE_APPS = [
         title="Yet another Test",
         icon="fa fa-github",
         client_kwargs={"token_endpoint_auth_method": "client_secret_post"},
-    )
+    ),
 ]
 """Configuration of remote applications."""
 

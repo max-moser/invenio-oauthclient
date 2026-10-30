@@ -25,16 +25,14 @@ from werkzeug.routing import BaseConverter, ValidationError
 
 from ..models import RemoteAccount
 from ..proxies import current_oauthclient
-from ..utils import (
-    create_csrf_disabled_registrationform,
-    create_registrationform,
-    fill_form,
-    get_safe_redirect_target,
-)
 from .authlib import _render_signup_form
 from .errors import OAuthError
 from .remote import RemoteApp
 from .utils import (
+    create_csrf_disabled_registrationform,
+    create_registrationform,
+    fill_form,
+    get_safe_redirect_target,
     get_session_next_url,
     oauth_authenticate,
     oauth_get_user,

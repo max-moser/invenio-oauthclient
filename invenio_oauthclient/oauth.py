@@ -10,14 +10,14 @@ from invenio_accounts.models import User
 from invenio_accounts.utils import register_user
 from werkzeug.local import LocalProxy
 
-from .models import RemoteAccount, RemoteToken, UserIdentity
-from .utils import (
+from .authlib.utils import (
     fill_form,
     filter_user_info,
     patch_dictionary,
     remove_csrf_tokens,
     remove_none_values,
 )
+from .models import RemoteAccount, RemoteToken, UserIdentity
 
 _security = LocalProxy(lambda: current_app.extensions["security"])
 

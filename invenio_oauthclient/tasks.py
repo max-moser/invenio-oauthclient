@@ -3,7 +3,6 @@
 
 """Tasks."""
 
-
 from celery import shared_task
 from flask import current_app
 from invenio_accounts.models import Role
