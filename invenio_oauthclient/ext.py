@@ -79,6 +79,11 @@ class _OAuthClientState:
             remote_app = obj_or_import_string(remote_app_config)
             assert isinstance(remote_app, RemoteApp)
 
+            if remote_app.name in self.clients:
+                app.logger.warning(
+                    f"Multiple OAuthClient remote apps use the same name ('{remote_app.name}'), only one will be registered!"
+                )
+
             self.clients[remote_app.name] = remote_app
             remote_app.register(self.oauth)
 
