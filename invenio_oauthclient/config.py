@@ -315,7 +315,7 @@ setting ``remote_app`` in your remote application configuration.
 
 """
 
-from invenio_oauthclient.utils import _create_registrationform
+from .authlib.utils import _create_registrationform
 
 from .authlib.remote import OIDCRemoteApp
 

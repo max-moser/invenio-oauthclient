@@ -10,13 +10,6 @@ from invenio_accounts.models import User
 from invenio_accounts.utils import register_user
 from werkzeug.local import LocalProxy
 
-from .authlib.utils import (
-    fill_form,
-    filter_user_info,
-    patch_dictionary,
-    remove_csrf_tokens,
-    remove_none_values,
-)
 from .models import RemoteAccount, RemoteToken, UserIdentity
 
 _security = LocalProxy(lambda: current_app.extensions["security"])
@@ -103,6 +96,8 @@ def oauth_register(form, user_info=None, precedence_mask=None, signup_options={}
     :param signup_options: Extra signup options dict.
     :returns: A :class:`invenio_accounts.models.User` instance.
     """
+    from .authlib.utils import fill_form, filter_user_info, patch_dictionary, remove_csrf_tokens, remove_none_values
+
     if form.validate():
         form_data = form.data
 
