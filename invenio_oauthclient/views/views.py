@@ -76,6 +76,7 @@ def login(remote_app: RemoteApp):
     return remote_app.client.authorize_redirect(redirect_url)
 
 
+@blueprint.route("/authorized/<remote_app:remote_app>/")  # for back-compat
 @blueprint.route("/authorized/<remote_app:remote_app>")
 def oauth_authorize(remote_app: RemoteApp):
     # Note: Authlib takes care of ID token validation (aud, iss, etc.)
