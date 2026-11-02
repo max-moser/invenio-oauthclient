@@ -161,3 +161,6 @@ add_ignore = "D401"
 addopts = '--black --isort --pydocstyle --doctest-glob="*.rst" --doctest-modules --cov=invenio_oauthclient --cov-report=term-missing'
 testpaths = "tests invenio_oauthclient"
 live_server_scope = "module"
+
+[tool.ruff.lint]
+ignore = ["I001"]  # this currently conflicts with isort (8.0.1 and 9.0.0b1)
