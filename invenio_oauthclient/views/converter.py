@@ -5,6 +5,9 @@ from __future__ import annotations
 
 from werkzeug.routing import BaseConverter, ValidationError
 
+from ..proxies import current_oauthclient
+from ..remote import RemoteApp
+
 
 class RemoteAppConverter(BaseConverter):
     """Endpoint converter validating that the remote app is known."""
