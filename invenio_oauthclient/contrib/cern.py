@@ -351,7 +351,7 @@ def extend_identity(identity, groups):
     """Extend identity with roles based on CERN groups."""
     provides = set(
         [UserNeed(current_user.email)]
-        + [RoleNeed("{0}@cern.ch".format(name)) for name in groups]
+        + [RoleNeed(f"{name}@cern.ch") for name in groups]
     )
     identity.provides |= provides
     session[OAUTHCLIENT_CERN_SESSION_KEY] = provides
@@ -367,7 +367,7 @@ def disconnect_identity(identity):
 def get_dict_from_response(response):
     """Prepare new mapping with 'Value's groupped by 'Type'."""
     result = {}
-    if getattr(response, "_resp") and response._resp.code > 400:
+    if response._resp and response._resp.code > 400:
         return result
 
     for i in response.data:

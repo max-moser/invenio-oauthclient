@@ -13,7 +13,7 @@ from flask import current_app
 # here, means previous imports won't break.
 from invenio_accounts.models import User, UserIdentity
 from invenio_db import db
-from sqlalchemy.dialects import mysql, postgresql
+from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import backref
 from sqlalchemy_utils import JSONType, StringEncryptedType
@@ -97,7 +97,7 @@ class RemoteAccount(db.Model, db.Timestamp):
 
     def __repr__(self):
         """String representation for model."""
-        return "Remote Account <id={0.id}, user_id={0.user.id}>".format(self)
+        return f"Remote Account <id={self.id}, user_id={self.user.id}>"
 
 
 class RemoteToken(db.Model, db.Timestamp):
@@ -163,8 +163,8 @@ class RemoteToken(db.Model, db.Timestamp):
     def __repr__(self):
         """String representation for model."""
         return (
-            "Remote Token <token_type={0.token_type} "
-            "access_token=****{1}>".format(self, self.access_token[-4:])
+            f"Remote Token <token_type={self.token_type} "
+            f"access_token=****{self.access_token[-4:]}>"
         )
 
     def token(self):

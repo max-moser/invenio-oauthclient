@@ -36,16 +36,15 @@ from invenio_accounts.views import blueprint as blueprint_accounts
 from invenio_admin import InvenioAdmin
 from invenio_db import InvenioDB
 from invenio_i18n import Babel
+from invenio_oauthclient._compat import monkey_patch_werkzeug
+from invenio_oauthclient.views.client import blueprint as blueprint_client
 
 from invenio_oauthclient import InvenioOAuthClient
-from invenio_oauthclient.views.client import blueprint as blueprint_client
 from invenio_oauthclient.views.settings import blueprint as blueprint_settings
 
-from invenio_oauthclient._compat import monkey_patch_werkzeug  # noqa isort:skip
+monkey_patch_werkzeug()
 
-monkey_patch_werkzeug()  # noqa isort:skip
-
-from flask_oauthlib.client import OAuth as FlaskOAuth  # noqa isort:skip
+from flask_oauthlib.client import OAuth as FlaskOAuth
 
 # Create Flask application
 app = Flask(__name__)

@@ -12,10 +12,6 @@ from flask_security.confirmable import _security
 from helpers import check_redirect_location
 from invenio_accounts.models import Role
 from invenio_accounts.proxies import current_datastore
-from werkzeug.routing import BuildError
-
-from invenio_oauthclient import InvenioOAuthClient, current_oauthclient
-from invenio_oauthclient.errors import AlreadyLinkedError, OAuthClientLinkOnlySignup
 from invenio_oauthclient.handlers import (
     authorized_signup_handler,
     disconnect_handler,
@@ -24,9 +20,13 @@ from invenio_oauthclient.handlers import (
     token_session_key,
     token_setter,
 )
-from invenio_oauthclient.models import RemoteToken
 from invenio_oauthclient.oauth import oauth_authenticate
 from invenio_oauthclient.views.client import blueprint as blueprint_client
+from werkzeug.routing import BuildError
+
+from invenio_oauthclient import InvenioOAuthClient, current_oauthclient
+from invenio_oauthclient.errors import AlreadyLinkedError
+from invenio_oauthclient.models import RemoteToken
 from invenio_oauthclient.views.settings import blueprint as blueprint_settings
 
 

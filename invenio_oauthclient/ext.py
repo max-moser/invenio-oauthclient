@@ -17,12 +17,13 @@ from invenio_i18n import lazy_gettext as _
 from invenio_theme.proxies import current_theme_icons
 
 from . import config
-from .utils import fetch_token, refresh_token
 from .remote import RemoteApp
 from .utils import (
+    fetch_token,
     load_user_role_needs,
     oauth_logout_handler,
     obj_or_import_string,
+    refresh_token,
 )
 from .views import blueprint
 

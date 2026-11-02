@@ -315,9 +315,8 @@ setting ``remote_app`` in your remote application configuration.
 
 """
 
-from .utils import _create_registrationform
-
 from .remote import OIDCRemoteApp
+from .utils import _create_registrationform
 
 OAUTHCLIENT_CLIENTS = []
 

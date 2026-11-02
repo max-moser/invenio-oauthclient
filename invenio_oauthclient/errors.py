@@ -6,8 +6,6 @@
 
 # Imported here for backward compatibility after moving UserIdentity to
 # Invenio-Accounts.
-from invenio_accounts.errors import AlreadyLinkedError
-
 
 
 class OAuthError(Exception):

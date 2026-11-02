@@ -40,9 +40,8 @@ def test_admin(app):
         # create user and save url for testing
         request_url = url_for("remoteaccount.index_view")
 
-    with app.app_context():
-        with app.test_client() as client:
-            res = client.get(request_url, follow_redirects=True)
-            assert res.status_code == 200
-            assert "Extra Data" in str(res.get_data())
-            assert "Tokens" in str(res.get_data())
+    with app.app_context(), app.test_client() as client:
+        res = client.get(request_url, follow_redirects=True)
+        assert res.status_code == 200
+        assert "Extra Data" in str(res.get_data())
+        assert "Tokens" in str(res.get_data())

@@ -21,11 +21,11 @@ def _create_example_app(app_name):
     exampleappdir = os.path.join(project_dir, "examples")
     os.chdir(exampleappdir)
     # setup example
-    cmd = "FLASK_APP={0} ./app-setup.sh".format(app_name)
+    cmd = f"FLASK_APP={app_name} ./app-setup.sh"
     exit_status = subprocess.call(cmd, shell=True)
     assert exit_status == 0
     # Starting example web app
-    cmd = "FLASK_APP={0} flask run --debugger -p 5000".format(app_name)
+    cmd = f"FLASK_APP={app_name} flask run --debugger -p 5000"
     webapp = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, preexec_fn=os.setsid, shell=True
     )
@@ -35,7 +35,7 @@ def _create_example_app(app_name):
     # stop server
     os.killpg(webapp.pid, signal.SIGTERM)
     # tear down example app
-    cmd = "FLASK_APP={0} ./app-teardown.sh".format(app_name)
+    cmd = f"FLASK_APP={app_name} ./app-teardown.sh"
     subprocess.call(cmd, shell=True)
     # return to the original directory
     os.chdir(current_dir)
@@ -46,8 +46,8 @@ def _create_example_app(app_name):
 @pytest.mark.parametrize("service", ["orcid", "github", "globus"])
 def test_app(service):
     """Test example app for given service."""
-    with _create_example_app("{0}_app.py".format(service)):
-        cmd = "curl http://localhost:5000/{0}".format(service)
+    with _create_example_app(f"{service}_app.py"):
+        cmd = f"curl http://localhost:5000/{service}"
         output = subprocess.check_output(cmd, shell=True).decode("utf-8")
         assert "Redirect" in output
 
@@ -56,7 +56,7 @@ def test_app(service):
 @pytest.mark.parametrize("service", ["orcid", "github", "globus"])
 def test_app_rest(service):
     """Test example app for given service."""
-    with _create_example_app("{0}_app_rest.py".format(service)):
-        cmd = "curl http://localhost:5000/{0}".format(service)
+    with _create_example_app(f"{service}_app_rest.py"):
+        cmd = f"curl http://localhost:5000/{service}"
         output = subprocess.check_output(cmd, shell=True).decode("utf-8")
         assert "Redirect" in output

@@ -12,8 +12,8 @@ from authlib.oauth2.client import OAuth2Client
 from invenio_accounts.models import User
 from invenio_db import db
 
-from .models import RemoteAccount, RemoteToken, UserIdentity
 from .data import ServerMetadata, UserInfo
+from .models import RemoteAccount, RemoteToken, UserIdentity
 
 
 class RemoteApp(ABC):

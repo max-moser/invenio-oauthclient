@@ -66,18 +66,17 @@ from invenio_accounts.views import blueprint as blueprint_user
 from invenio_db import InvenioDB
 from invenio_i18n import Babel
 from invenio_mail import InvenioMail
+from invenio_oauthclient._compat import monkey_patch_werkzeug
+from invenio_oauthclient.views.client import rest_blueprint as blueprint_client
 from invenio_userprofiles import InvenioUserProfiles
 from invenio_userprofiles.views import blueprint_ui_init as blueprint_userprofile_init
 
 from invenio_oauthclient import InvenioOAuthClientREST
 from invenio_oauthclient.contrib import globus
-from invenio_oauthclient.views.client import rest_blueprint as blueprint_client
 
-from invenio_oauthclient._compat import monkey_patch_werkzeug  # noqa isort:skip
+monkey_patch_werkzeug()
 
-monkey_patch_werkzeug()  # noqa isort:skip
-
-from flask_oauthlib.client import OAuth as FlaskOAuth  # noqa isort:skip
+from flask_oauthlib.client import OAuth as FlaskOAuth
 
 # [ Configure application credentials ]
 GLOBUS_APP_CREDENTIALS = dict(
@@ -133,4 +132,4 @@ def globus():
     """Try to print user email or redirect to login with globus."""
     if not current_user.is_authenticated:
         return redirect(url_for("invenio_oauthclient.rest_login", remote_app="globus"))
-    return "hello {}".format(current_user.email)
+    return f"hello {current_user.email}"

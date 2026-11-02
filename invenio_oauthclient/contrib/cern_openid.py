@@ -227,7 +227,7 @@ def disconnect_identity(identity):
 def get_dict_from_response(response):
     """Prepare new mapping with 'Value's grouped by 'Type'."""
     result = {}
-    if getattr(response, "_resp") and response._resp.code > 400:
+    if response._resp and response._resp.code > 400:
         return result
 
     for key, value in response.data.items():
@@ -388,9 +388,7 @@ def on_identity_changed(sender, identity):
     # However, it is not harmful because it will simply fetch the extra roles cached
     # in the DB.
     # Changing this requires large refactoring.
-    logged_in_via_token = hasattr(current_user, "login_via_oauth2") and getattr(
-        current_user, "login_via_oauth2"
-    )
+    logged_in_via_token = hasattr(current_user, "login_via_oauth2") and current_user.login_via_oauth2
 
     remote = g.get("oauth_logged_in_with_remote", None)
     logged_in_with_cern_openid = remote and remote.name == "cern_openid"

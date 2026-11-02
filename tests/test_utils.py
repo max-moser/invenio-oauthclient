@@ -9,9 +9,6 @@ from urllib.parse import quote_plus
 import pytest
 from flask_security.confirmable import _security
 from invenio_db import db
-
-from invenio_oauthclient.errors import AlreadyLinkedError
-from invenio_oauthclient.models import RemoteAccount, RemoteToken
 from invenio_oauthclient.oauth import (
     _get_external_id,
     oauth_authenticate,
@@ -19,6 +16,9 @@ from invenio_oauthclient.oauth import (
     oauth_link_external_id,
     oauth_unlink_external_id,
 )
+
+from invenio_oauthclient.errors import AlreadyLinkedError
+from invenio_oauthclient.models import RemoteAccount, RemoteToken
 from invenio_oauthclient.proxies import current_oauthclient
 from invenio_oauthclient.utils import (
     create_csrf_disabled_registrationform,
@@ -216,7 +216,7 @@ def test_registrationform_userprofile_disable_csrf(
     ],
 )
 def test_get_safe_redirect_target(app, test_input, expected):
-    with app.test_request_context("/?next={0}".format(quote_plus(test_input))):
+    with app.test_request_context(f"/?next={quote_plus(test_input)}"):
         assert get_safe_redirect_target() == expected
 
 

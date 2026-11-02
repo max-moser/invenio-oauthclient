@@ -42,7 +42,7 @@ def test_login(app):
 
     comps = urlparse(resp.location)
     params = parse_qs(comps.query)
-    url = "{}://{}{}".format(comps.scheme, comps.netloc, comps.path)
+    url = f"{comps.scheme}://{comps.netloc}{comps.path}"
 
     assert url == auth_url
     assert params["response_type"] == ["code"]

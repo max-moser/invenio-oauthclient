@@ -9,7 +9,7 @@ import jwt
 from flask import current_app
 from invenio_i18n import gettext as _
 
-from ...errors import OAuthError, OAuthKeycloakUserInfoError
+from ...errors import OAuthError
 
 AZ_09_DASHES_UNDERSCORES = r"^[A-Za-z0-9_-]+$"
 

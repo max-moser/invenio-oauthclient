@@ -5,6 +5,7 @@
 """Test case for views."""
 
 import time
+from unittest.mock import MagicMock
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -15,15 +16,14 @@ from helpers import check_response_redirect_url
 from invenio_accounts.testutils import login_user_via_session
 from invenio_base.jws import TimedJSONWebSignatureSerializer
 from invenio_db import db
-from mock import MagicMock
+from invenio_oauthclient._compat import _create_identifier
+from invenio_oauthclient.handlers import token_getter
+from invenio_oauthclient.views.client import blueprint as blueprint_client
+from invenio_oauthclient.views.client import serializer
 from simplejson import JSONDecodeError
 
 from invenio_oauthclient import InvenioOAuthClient
-from invenio_oauthclient._compat import _create_identifier
-from invenio_oauthclient.handlers import token_getter
 from invenio_oauthclient.models import RemoteAccount, RemoteToken
-from invenio_oauthclient.views.client import blueprint as blueprint_client
-from invenio_oauthclient.views.client import serializer
 from invenio_oauthclient.views.settings import blueprint as blueprint_settings
 
 
@@ -525,30 +525,29 @@ def test_settings_view(views_fixture):
         login_user(user)
         return "Logged In"
 
-    with app.app_context():
-        with app.test_client() as client:
-            user = datastore.find_user(email="existing@inveniosoftware.org")
-            RemoteAccount.create(user.get_id(), "testid", None)
+    with app.app_context(), app.test_client() as client:
+        user = datastore.find_user(email="existing@inveniosoftware.org")
+        RemoteAccount.create(user.get_id(), "testid", None)
 
-            resp = client.get(
-                url_for("invenio_oauthclient_settings.index"), follow_redirects=False
-            )
-            assert resp.status_code == 401
+        resp = client.get(
+            url_for("invenio_oauthclient_settings.index"), follow_redirects=False
+        )
+        assert resp.status_code == 401
 
-            # make a fake login (using my login function)
-            client.get("/foo_login", follow_redirects=True)
+        # make a fake login (using my login function)
+        client.get("/foo_login", follow_redirects=True)
 
-            resp = client.get(
-                url_for("invenio_oauthclient_settings.index"), follow_redirects=True
-            )
-            assert resp.status_code == 200
-            assert b"MyLinkedTestAccount" in resp.data
-            assert url_for(
-                "invenio_oauthclient.disconnect", remote_app="test"
-            ) in resp.data.decode("utf-8")
-            assert url_for(
-                "invenio_oauthclient.login", remote_app="full"
-            ) in resp.data.decode("utf-8")
-            assert url_for(
-                "invenio_oauthclient.login", remote_app="test_invalid"
-            ) in resp.data.decode("utf-8")
+        resp = client.get(
+            url_for("invenio_oauthclient_settings.index"), follow_redirects=True
+        )
+        assert resp.status_code == 200
+        assert b"MyLinkedTestAccount" in resp.data
+        assert url_for(
+            "invenio_oauthclient.disconnect", remote_app="test"
+        ) in resp.data.decode("utf-8")
+        assert url_for(
+            "invenio_oauthclient.login", remote_app="full"
+        ) in resp.data.decode("utf-8")
+        assert url_for(
+            "invenio_oauthclient.login", remote_app="test_invalid"
+        ) in resp.data.decode("utf-8")

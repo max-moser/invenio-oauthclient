@@ -5,7 +5,6 @@
 """Account settings blueprint for oauthclient."""
 
 from dataclasses import dataclass
-from operator import itemgetter
 
 from flask import Blueprint, current_app, render_template
 from flask_login import current_user, login_required

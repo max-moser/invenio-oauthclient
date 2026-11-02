@@ -10,6 +10,7 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from flask import current_app, g, session, url_for
 from flask_login import current_user
+from flask_oauthlib.client import OAuthResponse
 from flask_security import login_user, logout_user
 from flask_security.utils import hash_password
 from helpers import (
@@ -27,8 +28,6 @@ from invenio_oauthclient.contrib.cern_openid import (
     get_dict_from_response,
 )
 from invenio_oauthclient.models import RemoteAccount
-
-from flask_oauthlib.client import OAuthResponse  # noqa isort:skip
 
 
 @pytest.fixture()

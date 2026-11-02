@@ -5,6 +5,7 @@
 """Test case for views."""
 
 import time
+from unittest.mock import MagicMock
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -14,14 +15,13 @@ from helpers import check_response_redirect_url, check_response_redirect_url_arg
 from invenio_accounts.testutils import login_user_via_session
 from invenio_base.jws import TimedJSONWebSignatureSerializer
 from invenio_db import db
-from mock import MagicMock
+from invenio_oauthclient._compat import _create_identifier
+from invenio_oauthclient.handlers import token_getter
+from invenio_oauthclient.views.client import rest_blueprint, serializer
 from simplejson import JSONDecodeError
 
 from invenio_oauthclient import InvenioOAuthClientREST
-from invenio_oauthclient._compat import _create_identifier
-from invenio_oauthclient.handlers import token_getter
 from invenio_oauthclient.models import RemoteToken
-from invenio_oauthclient.views.client import rest_blueprint, serializer
 
 
 def mock_response(oauth, remote_app="test", data=None):

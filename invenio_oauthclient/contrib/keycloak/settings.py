@@ -118,7 +118,7 @@ class KeycloakSettingsHelper(OAuthSettingsHelper):
         :param realm_url: The realm base URL
         :param endpoint: The endpoint to use (e.g. "auth", "token", ...)
         """
-        return "{}/protocol/openid-connect/{}".format(realm_url, endpoint)
+        return f"{realm_url}/protocol/openid-connect/{endpoint}"
 
     def get_handlers(self):
         """Return a dict with the auth handlers."""

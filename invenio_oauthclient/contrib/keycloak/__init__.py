@@ -91,9 +91,9 @@ from .handlers import (
 from .settings import KeycloakSettingsHelper
 
 __all__ = (
+    "KeycloakSettingsHelper",
     "disconnect_handler",
     "disconnect_rest_handler",
     "info_handler",
     "setup_handler",
-    "KeycloakSettingsHelper",
 )

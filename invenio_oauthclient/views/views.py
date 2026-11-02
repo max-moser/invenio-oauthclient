@@ -22,13 +22,13 @@ from invenio_db import db
 from joserfc.errors import JoseError
 from requests import HTTPError
 
+from ..errors import OAuthError
 from ..models import RemoteAccount
 from ..proxies import current_oauthclient
-from ..errors import OAuthError
 from ..remote import RemoteApp
 from ..utils import (
-    create_csrf_disabled_registrationform,
     _render_signup_form,
+    create_csrf_disabled_registrationform,
     create_registrationform,
     fill_form,
     get_safe_redirect_target,
@@ -171,7 +171,7 @@ def register(remote_app: RemoteApp):
         if (user := oauth_register(form, {}, signup_options={})) is None:
             flash(form)
             # Form data valid, but impossible to create user
-            raise OAuthError("Could not create user")
+            raise OAuthError("Could not create user", remote_app)
         else:
             login_user(user)
             # NOTE: the refresh token typically only gets supplied if "offline_access" is in the scope

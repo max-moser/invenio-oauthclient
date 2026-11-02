@@ -3,8 +3,6 @@
 
 """Create oauthclient branch."""
 
-import sqlalchemy as sa
-from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "44ab9963e8cf"
@@ -15,9 +13,7 @@ depends_on = "dbdbc1b19cf2"
 
 def upgrade():
     """Upgrade database."""
-    pass
 
 
 def downgrade():
     """Downgrade database."""
-    pass

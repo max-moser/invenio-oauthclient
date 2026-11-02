@@ -4,9 +4,9 @@
 """Test case for github oauth remote app."""
 
 from collections import namedtuple
+from unittest import mock
 from urllib.parse import parse_qs, urlparse
 
-import mock
 import pytest
 from flask import url_for
 from flask_login import current_user
@@ -19,13 +19,13 @@ from helpers import (
 )
 from invenio_accounts.models import User
 from invenio_db import db
+from invenio_oauthclient._compat import _create_identifier
+from invenio_oauthclient.views.client import serializer
 
 from invenio_oauthclient import current_oauthclient
-from invenio_oauthclient._compat import _create_identifier
 from invenio_oauthclient.contrib.github import authorized_rest
 from invenio_oauthclient.errors import OAuthResponseError
 from invenio_oauthclient.models import RemoteAccount, RemoteToken, UserIdentity
-from invenio_oauthclient.views.client import serializer
 
 
 def _get_state():
@@ -55,7 +55,7 @@ def test_login(app_rest):
     assert params["state"]
 
 
-class MockGh(object):
+class MockGh:
     """Mock gh."""
 
     def __init__(self, email):

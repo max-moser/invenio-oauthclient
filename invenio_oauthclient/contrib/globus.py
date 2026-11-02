@@ -158,7 +158,7 @@ REMOTE_REST_APP = _globus_app.remote_rest_app
 
 def get_dict_from_response(response):
     """Check for errors in the response and return the resulting JSON."""
-    if getattr(response, "_resp") and response._resp.code > 400:
+    if response._resp and response._resp.code > 400:
         raise OAuthResponseError(
             _("Application mis-configuration in Globus"), None, response
         )
