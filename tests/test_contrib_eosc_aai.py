@@ -33,7 +33,7 @@ def test_account_info(app, example_eosc_aai):
     # Ensure remote apps have been loaded (due to before first request)
     client.get(url_for("invenio_oauthclient.login", remote_app="eosc_aai"))
 
-    example_data, example_account_info = example_eosc_aai
+    _example_data, example_account_info = example_eosc_aai
 
     # Mock userinfo endpoint response
     userinfo_data = {
@@ -72,17 +72,17 @@ def test_account_info(app, example_eosc_aai):
     empty_userinfo_response = MockResponse({}, 200)
     mock_remote_get(ioc, "eosc_aai", empty_userinfo_response)
 
-    assert account_info(ioc.remote_apps["eosc_aai"], {}) == dict(
-        external_id=None,
-        external_method="eosc_aai",
-        user=dict(
-            email=None,
-            profile=dict(
-                full_name=None,
-            ),
-        ),
-        active=True,
-    )
+    assert account_info(ioc.remote_apps["eosc_aai"], {}) == {
+        "external_id": None,
+        "external_method": "eosc_aai",
+        "user": {
+            "email": None,
+            "profile": {
+                "full_name": None,
+            },
+        },
+        "active": True,
+    }
 
     # Test userinfo failure with JWT fallback
     failed_userinfo_response = MockResponse({}, 500)

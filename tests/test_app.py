@@ -51,7 +51,7 @@ class _CustomOAuthRemoteApp(OAuthRemoteApp):
 
 def test_standard_remote_app_factory(base_app):
     """Test standard remote_app class."""
-    base_app.config.update(OAUTHCLIENT_REMOTE_APPS=dict(custom_app=REMOTE_APP))
+    base_app.config.update(OAUTHCLIENT_REMOTE_APPS={"custom_app": REMOTE_APP})
     FlaskOAuth(base_app)
     InvenioOAuthClient(base_app)
     assert isinstance(
@@ -67,7 +67,7 @@ def test_remote_app_factory_global_customization(base_app):
     """Test remote_app override with global variable."""
     base_app.config.update(
         OAUTHCLIENT_REMOTE_APP=_CustomOAuthRemoteApp,
-        OAUTHCLIENT_REMOTE_APPS=dict(custom_app=REMOTE_APP),
+        OAUTHCLIENT_REMOTE_APPS={"custom_app": REMOTE_APP},
     )
     FlaskOAuth(base_app)
     InvenioOAuthClient(base_app)
@@ -81,7 +81,7 @@ def test_remote_app_factory_local_customization(base_app):
     """Test custom remote_app for one app only."""
     config_for_one_app = deepcopy(REMOTE_APP)
     config_for_one_app["remote_app"] = _CustomOAuthRemoteApp
-    base_app.config.update(OAUTHCLIENT_REMOTE_APPS=dict(custom_app=config_for_one_app))
+    base_app.config.update(OAUTHCLIENT_REMOTE_APPS={"custom_app": config_for_one_app})
     FlaskOAuth(base_app)
     InvenioOAuthClient(base_app)
     assert isinstance(
@@ -158,7 +158,7 @@ def test_remote_app_factory_hide_when(base_app, hide_when):
         hide_when=hide_when,
     )
     KEYCLOAK_REMOTE_APP = helper.remote_app
-    base_app.config.update(OAUTHCLIENT_REMOTE_APPS=dict(remote_app=KEYCLOAK_REMOTE_APP))
+    base_app.config.update(OAUTHCLIENT_REMOTE_APPS={"remote_app": KEYCLOAK_REMOTE_APP})
     FlaskOAuth(base_app)
     InvenioOAuthClient(base_app)
     config_app = base_app.config["OAUTHCLIENT_REMOTE_APPS"]["remote_app"]

@@ -144,22 +144,22 @@ def test_authorized(base_app, params):
         handled["kwargs"] = 1
 
     base_app.config["OAUTHCLIENT_REMOTE_APPS"].update(
-        dict(
-            test=dict(
-                authorized_handler=test_authorized_handler,
-                params=params("testid"),
-                title="MyLinkedTestAccount",
-            ),
-            test_invalid=dict(
-                authorized_handler=test_invalid_authorized_handler,
-                params=params("test_invalidid"),
-                title="Test Invalid",
-            ),
-            full=dict(
-                params=params("fullid"),
-                title="Full",
-            ),
-        )
+        {
+            "test": {
+                "authorized_handler": test_authorized_handler,
+                "params": params("testid"),
+                "title": "MyLinkedTestAccount",
+            },
+            "test_invalid": {
+                "authorized_handler": test_invalid_authorized_handler,
+                "params": params("test_invalidid"),
+                "title": "Test Invalid",
+            },
+            "full": {
+                "params": params("fullid"),
+                "title": "Full",
+            },
+        }
     )
 
     FlaskOAuth(app)
@@ -478,12 +478,12 @@ def test_rejected(views_fixture, monkeypatch):
         mock_response(
             app.extensions["oauthlib.client"],
             "full",
-            data=dict(
-                error_uri="http://developer.github.com/v3/oauth/"
+            data={
+                "error_uri": "http://developer.github.com/v3/oauth/"
                 "#bad-verification-code",
-                error_description="The code passed is " "incorrect or expired.",
-                error="bad_verification_code",
-            ),
+                "error_description": "The code passed is " "incorrect or expired.",
+                "error": "bad_verification_code",
+            },
         )
 
         # Imitate that the user authorized our request in the remote

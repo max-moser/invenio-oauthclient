@@ -31,11 +31,11 @@ def test_account_info(app, example_orcid):
 
     assert account_info(ioc.remote_apps["orcid"], example_data) == example_account_info
 
-    assert account_info(ioc.remote_apps["orcid"], {}) == dict(
-        external_id=None,
-        external_method="orcid",
-        user=dict(profile=dict(full_name=None)),
-    )
+    assert account_info(ioc.remote_apps["orcid"], {}) == {
+        "external_id": None,
+        "external_method": "orcid",
+        "user": {"profile": {"full_name": None}},
+    }
 
 
 def test_login(app, example_orcid):
@@ -59,7 +59,7 @@ def test_login(app, example_orcid):
 def test_authorized_signup(app_with_userprofiles, example_orcid, orcid_bio):
     """Test authorized callback with sign-up."""
     app = app_with_userprofiles
-    example_data, example_account_info = example_orcid
+    example_data, _example_account_info = example_orcid
     example_email = "orcidtest@inveniosoftware.org"
 
     with app.test_client() as c:
@@ -100,7 +100,7 @@ def test_authorized_signup(app_with_userprofiles, example_orcid, orcid_bio):
         httpretty.enable()
         httpretty.register_uri(
             httpretty.GET,
-            "http://orcid.org/{0}/orcid-bio".format(example_data["orcid"]),
+            "http://orcid.org/{}/orcid-bio".format(example_data["orcid"]),
             body=orcid_bio,
             content_type="application/orcid+json; qs=2;charset=UTF-8",
         )
@@ -188,7 +188,7 @@ def test_authorized_already_authenticated(
     datastore = app.extensions["invenio-accounts"].datastore
     login_manager = app.login_manager
 
-    example_data, example_account_info = example_orcid
+    example_data, _example_account_info = example_orcid
     existing_email = "existing@inveniosoftware.org"
     user = datastore.find_user(email=existing_email)
 
@@ -216,7 +216,7 @@ def test_authorized_already_authenticated(
         httpretty.enable()
         httpretty.register_uri(
             httpretty.GET,
-            "https://pub.orcid.org/v1.2/{0}/orcid-bio".format(example_data["orcid"]),
+            "https://pub.orcid.org/v1.2/{}/orcid-bio".format(example_data["orcid"]),
             body=orcid_bio,
             content_type="application/orcid+json; qs=2;charset=UTF-8",
         )

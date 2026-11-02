@@ -95,61 +95,61 @@ OAUTHCLIENT_CERN_OPENID_SESSION_KEY = "identity.cern_openid_provides"
 OAUTHCLIENT_CERN_OPENID_ALLOWED_ROLES = ["cern_user"]
 """CERN OAuth application role values that are allowed to be used."""
 
-BASE_APP = dict(
-    title=lazy_gettext("CERN"),
-    description=lazy_gettext("Connecting to CERN Organization."),
-    icon="",
-    logout_url="https://auth.cern.ch/auth/realms/cern/protocol/"
+BASE_APP = {
+    "title": lazy_gettext("CERN"),
+    "description": lazy_gettext("Connecting to CERN Organization."),
+    "icon": "",
+    "logout_url": "https://auth.cern.ch/auth/realms/cern/protocol/"
     "openid-connect/logout",
-    signup_options={
+    "signup_options": {
         "auto_confirm": True,
         "send_register_msg": False,
     },
-    params=dict(
-        base_url="https://auth.cern.ch/auth/realms/cern",
-        request_token_url=None,
-        access_token_url="https://auth.cern.ch/auth/realms/cern/protocol/"
+    "params": {
+        "base_url": "https://auth.cern.ch/auth/realms/cern",
+        "request_token_url": None,
+        "access_token_url": "https://auth.cern.ch/auth/realms/cern/protocol/"
         "openid-connect/token",
-        access_token_method="POST",
-        authorize_url="https://auth.cern.ch/auth/realms/cern/protocol/"
+        "access_token_method": "POST",
+        "authorize_url": "https://auth.cern.ch/auth/realms/cern/protocol/"
         "openid-connect/auth",
-        app_key="CERN_APP_OPENID_CREDENTIALS",
-        content_type="application/json",
-    ),
-)
+        "app_key": "CERN_APP_OPENID_CREDENTIALS",
+        "content_type": "application/json",
+    },
+}
 
 REMOTE_APP = dict(BASE_APP)
 REMOTE_APP.update(
-    dict(
-        authorized_handler="invenio_oauthclient.handlers:authorized_signup_handler",
-        disconnect_handler="invenio_oauthclient.contrib.cern_openid:disconnect_handler",
-        signup_handler=dict(
-            info="invenio_oauthclient.contrib.cern_openid:account_info",
-            setup="invenio_oauthclient.contrib.cern_openid:account_setup",
-            view="invenio_oauthclient.handlers:signup_handler",
-        ),
-    )
+    {
+        "authorized_handler": "invenio_oauthclient.handlers:authorized_signup_handler",
+        "disconnect_handler": "invenio_oauthclient.contrib.cern_openid:disconnect_handler",
+        "signup_handler": {
+            "info": "invenio_oauthclient.contrib.cern_openid:account_info",
+            "setup": "invenio_oauthclient.contrib.cern_openid:account_setup",
+            "view": "invenio_oauthclient.handlers:signup_handler",
+        },
+    }
 )
 """CERN Openid Remote Application."""
 
 REMOTE_REST_APP = dict(BASE_APP)
 REMOTE_REST_APP.update(
-    dict(
-        authorized_handler="invenio_oauthclient.handlers.rest:authorized_signup_handler",
-        disconnect_handler="invenio_oauthclient.contrib.cern_openid:disconnect_rest_handler",
-        signup_handler=dict(
-            info="invenio_oauthclient.contrib.cern_openid:account_info_rest",
-            setup="invenio_oauthclient.contrib.cern_openid:account_setup",
-            view="invenio_oauthclient.handlers.rest:signup_handler",
-        ),
-        response_handler=(
+    {
+        "authorized_handler": "invenio_oauthclient.handlers.rest:authorized_signup_handler",
+        "disconnect_handler": "invenio_oauthclient.contrib.cern_openid:disconnect_rest_handler",
+        "signup_handler": {
+            "info": "invenio_oauthclient.contrib.cern_openid:account_info_rest",
+            "setup": "invenio_oauthclient.contrib.cern_openid:account_setup",
+            "view": "invenio_oauthclient.handlers.rest:signup_handler",
+        },
+        "response_handler": (
             "invenio_oauthclient.handlers.rest:default_remote_response_handler"
         ),
-        authorized_redirect_url="/",
-        disconnect_redirect_url="/",
-        signup_redirect_url="/",
-        error_redirect_url="/",
-    )
+        "authorized_redirect_url": "/",
+        "disconnect_redirect_url": "/",
+        "signup_redirect_url": "/",
+        "error_redirect_url": "/",
+    }
 )
 """CERN Openid Remote REST Application."""
 
@@ -157,13 +157,13 @@ OAUTHCLIENT_CERN_OPENID_USERINFO_URL = (
     "https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/userinfo"
 )
 
-OAUTHCLIENT_CERN_OPENID_JWT_TOKEN_DECODE_PARAMS = dict(
-    options=dict(
-        verify_signature=False,
-        verify_aud=False,
-    ),
-    algorithms=["HS256", "RS256"],
-)
+OAUTHCLIENT_CERN_OPENID_JWT_TOKEN_DECODE_PARAMS = {
+    "options": {
+        "verify_signature": False,
+        "verify_aud": False,
+    },
+    "algorithms": ["HS256", "RS256"],
+}
 
 cern_oauth_blueprint = Blueprint("cern_openid_oauth", __name__)
 
@@ -178,7 +178,7 @@ def find_remote_by_client_id(client_id):
 def fetch_extra_data(resource):
     """Return a dict with extra data retrieved from CERN OAuth."""
     person_id = resource.get("cern_person_id")
-    return dict(person_id=person_id)
+    return {"person_id": person_id}
 
 
 def account_roles_and_extra_data(account, resource, refresh_timedelta=None):
@@ -284,12 +284,12 @@ def _account_info(remote, resp):
     nice = resource["preferred_username"]
     name = resource["name"]
 
-    return dict(
-        user=dict(email=email.lower(), profile=dict(username=nice, full_name=name)),
-        external_id=external_id,
-        external_method="cern_openid",
-        active=True,
-    )
+    return {
+        "user": {"email": email.lower(), "profile": {"username": nice, "full_name": name}},
+        "external_id": external_id,
+        "external_method": "cern_openid",
+        "active": True,
+    }
 
 
 def account_info(remote, resp):
@@ -314,7 +314,7 @@ def account_info_rest(remote, resp):
         return response_handler(
             remote,
             remote_app_config["error_redirect_url"],
-            payload=dict(message="CERN account not allowed.", code=400),
+            payload={"message": "CERN account not allowed.", "code": 400},
         )
 
 
@@ -331,7 +331,7 @@ def _disconnect(remote, *args, **kwargs):
         external_id = account.extra_data.get("external_id")
 
         if external_id:
-            oauth_unlink_external_id(dict(id=external_id, method="cern_openid"))
+            oauth_unlink_external_id({"id": external_id, "method": "cern_openid"})
 
         with db.session.begin_nested():
             account.delete()
@@ -370,7 +370,7 @@ def account_setup(remote, token, resp):
         user = token.remote_account.user
 
         # Create user <-> external id link.
-        oauth_link_external_id(user, dict(id=external_id, method="cern_openid"))
+        oauth_link_external_id(user, {"id": external_id, "method": "cern_openid"})
 
 
 @identity_changed.connect

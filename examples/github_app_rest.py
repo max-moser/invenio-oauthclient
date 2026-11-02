@@ -88,10 +88,10 @@ monkey_patch_werkzeug()
 from flask_oauthlib.client import OAuth as FlaskOAuth
 
 # [ Configure application credentials ]
-GITHUB_APP_CREDENTIALS = dict(
-    consumer_key=os.environ.get("GITHUB_APP_CREDENTIALS_KEY"),
-    consumer_secret=os.environ.get("GITHUB_APP_CREDENTIALS_SECRET"),
-)
+GITHUB_APP_CREDENTIALS = {
+    "consumer_key": os.environ.get("GITHUB_APP_CREDENTIALS_KEY"),
+    "consumer_secret": os.environ.get("GITHUB_APP_CREDENTIALS_SECRET"),
+}
 
 # Create Flask application
 app = Flask(__name__)
@@ -100,9 +100,9 @@ app.config.update(
     SQLALCHEMY_DATABASE_URI=os.environ.get(
         "SQLALCHEMY_DATABASE_URI", "sqlite:///github_app_rest.db"
     ),
-    OAUTHCLIENT_REST_REMOTE_APPS=dict(
-        github=github.REMOTE_REST_APP,
-    ),
+    OAUTHCLIENT_REST_REMOTE_APPS={
+        "github": github.REMOTE_REST_APP,
+    },
     GITHUB_APP_CREDENTIALS=GITHUB_APP_CREDENTIALS,
     DEBUG=True,
     SECRET_KEY="TEST",
@@ -113,7 +113,7 @@ app.config.update(
     USERPROFILES_EXTEND_SECURITY_FORMS=True,
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
     APP_THEME=["semantic-ui"],
-    THEME_ICONS={"semantic-ui": dict(link="linkify icon")},
+    THEME_ICONS={"semantic-ui": {"link": "linkify icon"}},
 )
 
 Babel(app)

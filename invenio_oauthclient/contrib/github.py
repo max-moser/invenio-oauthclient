@@ -113,35 +113,35 @@ class GitHubOAuthSettingsHelper(OAuthSettingsHelper):
             signup_options=signup_options,
         )
 
-        self._handlers = dict(
-            authorized_handler="invenio_oauthclient.handlers:authorized_signup_handler",
-            disconnect_handler="invenio_oauthclient.contrib.github:disconnect_handler",
-            signup_handler=dict(
-                info="invenio_oauthclient.contrib.github:account_info",
-                info_serializer="invenio_oauthclient.contrib.github:account_info_serializer",
-                setup="invenio_oauthclient.contrib.github:account_setup",
-                view="invenio_oauthclient.handlers:signup_handler",
-            ),
-        )
+        self._handlers = {
+            "authorized_handler": "invenio_oauthclient.handlers:authorized_signup_handler",
+            "disconnect_handler": "invenio_oauthclient.contrib.github:disconnect_handler",
+            "signup_handler": {
+                "info": "invenio_oauthclient.contrib.github:account_info",
+                "info_serializer": "invenio_oauthclient.contrib.github:account_info_serializer",
+                "setup": "invenio_oauthclient.contrib.github:account_setup",
+                "view": "invenio_oauthclient.handlers:signup_handler",
+            },
+        }
 
-        self._rest_handlers = dict(
-            authorized_handler="invenio_oauthclient.handlers.rest"
+        self._rest_handlers = {
+            "authorized_handler": "invenio_oauthclient.handlers.rest"
             ":authorized_signup_handler",
-            disconnect_handler="invenio_oauthclient.contrib.github"
+            "disconnect_handler": "invenio_oauthclient.contrib.github"
             ":disconnect_rest_handler",
-            signup_handler=dict(
-                info="invenio_oauthclient.contrib.github:account_info",
-                info_serializer="invenio_oauthclient.contrib.github:account_info_serializer",
-                setup="invenio_oauthclient.contrib.github:account_setup",
-                view="invenio_oauthclient.handlers.rest:signup_handler",
-            ),
-            response_handler="invenio_oauthclient.handlers.rest"
+            "signup_handler": {
+                "info": "invenio_oauthclient.contrib.github:account_info",
+                "info_serializer": "invenio_oauthclient.contrib.github:account_info_serializer",
+                "setup": "invenio_oauthclient.contrib.github:account_setup",
+                "view": "invenio_oauthclient.handlers.rest:signup_handler",
+            },
+            "response_handler": "invenio_oauthclient.handlers.rest"
             ":default_remote_response_handler",
-            authorized_redirect_url="/",
-            disconnect_redirect_url="/",
-            signup_redirect_url="/",
-            error_redirect_url="/",
-        )
+            "authorized_redirect_url": "/",
+            "disconnect_redirect_url": "/",
+            "signup_redirect_url": "/",
+            "error_redirect_url": "/",
+        }
 
     def get_handlers(self):
         """Return GitHub auth handlers."""
@@ -175,17 +175,17 @@ def account_info_serializer(remote, resp, user_info, emails_info, **kwargs):
     :param emails_info: The response of the `emails` endpoint.
     :returns: A dictionary with serialized user information.
     """
-    return dict(
-        user=dict(
-            email=_extract_email(emails_info),
-            profile=dict(
-                username=user_info.login,
-                full_name=user_info.name,
-            ),
-        ),
-        external_id=str(user_info.id),
-        external_method=remote.name,
-    )
+    return {
+        "user": {
+            "email": _extract_email(emails_info),
+            "profile": {
+                "username": user_info.login,
+                "full_name": user_info.name,
+            },
+        },
+        "external_id": str(user_info.id),
+        "external_method": remote.name,
+    }
 
 
 def account_info(remote, resp):
@@ -239,7 +239,7 @@ def account_setup(remote, token, resp):
 
         # Create user <-> external id link.
         oauth_link_external_id(
-            token.remote_account.user, dict(id=str(me.id), method=remote.name)
+            token.remote_account.user, {"id": str(me.id), "method": remote.name}
         )
 
 
@@ -303,7 +303,7 @@ def _disconnect(remote, *args, **kwargs):
     ]
 
     if external_ids:
-        oauth_unlink_external_id(dict(id=external_ids[0], method=remote.name))
+        oauth_unlink_external_id({"id": external_ids[0], "method": remote.name})
     if remote_account:
         with db.session.begin_nested():
             remote_account.delete()

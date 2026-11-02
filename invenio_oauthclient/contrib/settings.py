@@ -53,19 +53,19 @@ class OAuthSettingsHelper:
         signup_options.setdefault("send_register_msg", False)
         self.hide_when = hide_when if hide_when is not None else False
 
-        self.base_app = dict(
-            title=title,
-            description=description,
-            icon=icon,
-            icon_image=icon_image,
-            precedence_mask=precedence_mask,
-            signup_options=signup_options,
-            logout_url=logout_url,
-            hide=LocalProxy(
+        self.base_app = {
+            "title": title,
+            "description": description,
+            "icon": icon,
+            "icon_image": icon_image,
+            "precedence_mask": precedence_mask,
+            "signup_options": signup_options,
+            "logout_url": logout_url,
+            "hide": LocalProxy(
                 lambda: self.hide_when() if callable(hide_when) else self.hide_when
             ),
-            link_only=link_only,
-            params=dict(
+            "link_only": link_only,
+            "params": dict(
                 base_url=self.base_url,
                 request_token_params=request_token_params,
                 request_token_url=request_token_url,
@@ -75,7 +75,7 @@ class OAuthSettingsHelper:
                 app_key=app_key,
                 **kwargs,
             ),
-        )
+        }
 
     def get_handlers(self):
         """Return a dict with the auth handlers.

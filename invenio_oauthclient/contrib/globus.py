@@ -96,32 +96,32 @@ class GlobusOAuthSettingsHelper(OAuthSettingsHelper):
             signup_options=signup_options,
         )
 
-        self._handlers = dict(
-            authorized_handler="invenio_oauthclient.handlers:authorized_signup_handler",
-            disconnect_handler="invenio_oauthclient.contrib.globus:disconnect_handler",
-            signup_handler=dict(
-                info="invenio_oauthclient.contrib.globus:account_info",
-                info_serializer="invenio_oauthclient.contrib.globus:account_info_serializer",
-                setup="invenio_oauthclient.contrib.globus:account_setup",
-                view="invenio_oauthclient.handlers:signup_handler",
-            ),
-        )
+        self._handlers = {
+            "authorized_handler": "invenio_oauthclient.handlers:authorized_signup_handler",
+            "disconnect_handler": "invenio_oauthclient.contrib.globus:disconnect_handler",
+            "signup_handler": {
+                "info": "invenio_oauthclient.contrib.globus:account_info",
+                "info_serializer": "invenio_oauthclient.contrib.globus:account_info_serializer",
+                "setup": "invenio_oauthclient.contrib.globus:account_setup",
+                "view": "invenio_oauthclient.handlers:signup_handler",
+            },
+        }
 
-        self._rest_handlers = dict(
-            authorized_handler="invenio_oauthclient.handlers.rest:authorized_signup_handler",
-            disconnect_handler="invenio_oauthclient.contrib.globus:disconnect_rest_handler",
-            signup_handler=dict(
-                info="invenio_oauthclient.contrib.globus:account_info",
-                info_serializer="invenio_oauthclient.contrib.globus:account_info_serializer",
-                setup="invenio_oauthclient.contrib.globus:account_setup",
-                view="invenio_oauthclient.handlers.rest:signup_handler",
-            ),
-            response_handler="invenio_oauthclient.handlers.rest:default_remote_response_handler",
-            authorized_redirect_url="/",
-            disconnect_redirect_url="/",
-            signup_redirect_url="/",
-            error_redirect_url="/",
-        )
+        self._rest_handlers = {
+            "authorized_handler": "invenio_oauthclient.handlers.rest:authorized_signup_handler",
+            "disconnect_handler": "invenio_oauthclient.contrib.globus:disconnect_rest_handler",
+            "signup_handler": {
+                "info": "invenio_oauthclient.contrib.globus:account_info",
+                "info_serializer": "invenio_oauthclient.contrib.globus:account_info_serializer",
+                "setup": "invenio_oauthclient.contrib.globus:account_setup",
+                "view": "invenio_oauthclient.handlers.rest:signup_handler",
+            },
+            "response_handler": "invenio_oauthclient.handlers.rest:default_remote_response_handler",
+            "authorized_redirect_url": "/",
+            "disconnect_redirect_url": "/",
+            "signup_redirect_url": "/",
+            "error_redirect_url": "/",
+        }
 
     def get_handlers(self):
         """Return Globus auth handlers."""
@@ -271,7 +271,7 @@ def account_setup(remote, token, resp):
         # Create user <-> external id link.
         oauth_link_external_id(
             token.remote_account.user,
-            dict(id=user_id, method=remote.name),
+            {"id": user_id, "method": remote.name},
         )
 
 
@@ -293,7 +293,7 @@ def _disconnect(remote, *args, **kwargs):
     ]
 
     if external_ids:
-        oauth_unlink_external_id(dict(id=external_ids[0], method=remote.name))
+        oauth_unlink_external_id({"id": external_ids[0], "method": remote.name})
 
     if remote_account:
         with db.session.begin_nested():

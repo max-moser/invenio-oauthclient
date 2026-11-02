@@ -41,30 +41,30 @@ def example_cern_openid_rest(request):
 
     from jwt import encode
 
-    token = encode(dict(name="John Doe"), key="1234")
+    token = encode({"name": "John Doe"}, key="1234")
     return (
         OAuthResponse(resp=None, content=json_data, content_type="application/json"),
-        dict(
-            access_token=token,
-            token_type="bearer",
-            expires_in=1199,
-            refresh_token="test_refresh_token",
-        ),
-        dict(
-            user=dict(
-                email="john.doe@cern.ch",
-                profile=dict(username="jdoe", full_name="John Doe"),
-            ),
-            external_id="222222",
-            external_method="cern_openid",
-            active=True,
-        ),
+        {
+            "access_token": token,
+            "token_type": "bearer",
+            "expires_in": 1199,
+            "refresh_token": "test_refresh_token",
+        },
+        {
+            "user": {
+                "email": "john.doe@cern.ch",
+                "profile": {"username": "jdoe", "full_name": "John Doe"},
+            },
+            "external_id": "222222",
+            "external_method": "cern_openid",
+            "active": True,
+        },
     )
 
 
 def test_fetch_extra_data(app_rest, example_cern_openid_rest):
     """Test extra data extraction."""
-    example_response, example_token, _ = example_cern_openid_rest
+    example_response, _example_token, _ = example_cern_openid_rest
     res = get_dict_from_response(example_response)
 
     # Check that groups were hidden as required
@@ -102,7 +102,7 @@ def test_account_setup(app_rest, example_cern_openid_rest, models_fixture):
         )
         assert resp.status_code == 302
 
-        example_response, example_token, example_account_info = example_cern_openid_rest
+        example_response, example_token, _example_account_info = example_cern_openid_rest
 
         mock_response(
             app_rest.extensions["oauthlib.client"], "cern_openid", example_token
@@ -212,7 +212,7 @@ def test_account_info_not_allowed_account(app_rest, example_cern_openid_rest):
     # Ensure remote apps have been loaded (due to before first request)
     client.get(url_for("invenio_oauthclient.rest_login", remote_app="cern_openid"))
 
-    example_response, _, example_account_info = example_cern_openid_rest
+    example_response, _, _example_account_info = example_cern_openid_rest
 
     mock_remote_get(ioc, "cern_openid", example_response)
     resp = account_info_rest(ioc.remote_apps["cern_openid"], None)
@@ -241,7 +241,7 @@ def test_identity_changed(app_rest, example_cern_openid_rest, models_fixture):
             (
                 example_response,
                 example_token,
-                example_account_info,
+                _example_account_info,
             ) = example_cern_openid_rest
 
             mock_response(

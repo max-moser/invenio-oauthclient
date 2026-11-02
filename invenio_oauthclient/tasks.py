@@ -13,11 +13,7 @@ from invenio_i18n import gettext as _
 
 def _role_needs_update(role_obj, new_role_dict):
     """Checks if role needs to be updated."""
-    if role_obj.name != new_role_dict.get(
-        "name"
-    ) or role_obj.description != new_role_dict.get("description"):
-        return True
-    return False
+    return bool(role_obj.name != new_role_dict.get("name") or role_obj.description != new_role_dict.get("description"))
 
 
 def create_or_update_roles(groups, persist_every=500):

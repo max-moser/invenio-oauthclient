@@ -200,57 +200,57 @@ OAUTHCLIENT_CERN_SESSION_KEY = "identity.cern_provides"
 OAUTHCLIENT_CERN_ALLOWED_IDENTITY_CLASSES = ["CERN Registered", "CERN Shared"]
 """Cern oauth identityClass values that are allowed to be used."""
 
-BASE_APP = dict(
-    title=lazy_gettext("CERN"),
-    description=lazy_gettext("Connecting to CERN Organization."),
-    icon="",
-    logout_url="https://login.cern.ch/adfs/ls/?wa=wsignout1.0",
-    params=dict(
-        base_url="https://oauth.web.cern.ch/",
-        request_token_url=None,
-        access_token_url="https://oauth.web.cern.ch/OAuth/Token",
-        access_token_method="POST",
-        authorize_url="https://oauth.web.cern.ch/OAuth/Authorize",
-        app_key="CERN_APP_CREDENTIALS",
-        content_type="application/json",
-        request_token_params={"scope": "Name Email Bio Groups", "show_login": "true"},
-    ),
-)
+BASE_APP = {
+    "title": lazy_gettext("CERN"),
+    "description": lazy_gettext("Connecting to CERN Organization."),
+    "icon": "",
+    "logout_url": "https://login.cern.ch/adfs/ls/?wa=wsignout1.0",
+    "params": {
+        "base_url": "https://oauth.web.cern.ch/",
+        "request_token_url": None,
+        "access_token_url": "https://oauth.web.cern.ch/OAuth/Token",
+        "access_token_method": "POST",
+        "authorize_url": "https://oauth.web.cern.ch/OAuth/Authorize",
+        "app_key": "CERN_APP_CREDENTIALS",
+        "content_type": "application/json",
+        "request_token_params": {"scope": "Name Email Bio Groups", "show_login": "true"},
+    },
+}
 
 REMOTE_APP = dict(BASE_APP)
 REMOTE_APP.update(
-    dict(
-        authorized_handler="invenio_oauthclient.handlers:authorized_signup_handler",
-        disconnect_handler="invenio_oauthclient.contrib.cern:disconnect_handler",
-        signup_handler=dict(
-            info="invenio_oauthclient.contrib.cern:account_info",
-            setup="invenio_oauthclient.contrib.cern:account_setup",
-            view="invenio_oauthclient.handlers:signup_handler",
-        ),
-    )
+    {
+        "authorized_handler": "invenio_oauthclient.handlers:authorized_signup_handler",
+        "disconnect_handler": "invenio_oauthclient.contrib.cern:disconnect_handler",
+        "signup_handler": {
+            "info": "invenio_oauthclient.contrib.cern:account_info",
+            "setup": "invenio_oauthclient.contrib.cern:account_setup",
+            "view": "invenio_oauthclient.handlers:signup_handler",
+        },
+    }
 )
 """CERN Remote Application."""
 
 REMOTE_REST_APP = dict(BASE_APP)
 REMOTE_REST_APP.update(
-    dict(
-        authorized_handler="invenio_oauthclient.handlers.rest"
+    {
+        "authorized_handler": "invenio_oauthclient.handlers.rest"
         ":authorized_signup_handler",
-        disconnect_handler="invenio_oauthclient.contrib.cern"
+        "disconnect_handler": "invenio_oauthclient.contrib.cern"
         ":disconnect_rest_handler",
-        signup_handler=dict(
-            info="invenio_oauthclient.contrib.cern:account_info_rest",
-            setup="invenio_oauthclient.contrib.cern:account_setup",
-            view="invenio_oauthclient.handlers.rest:signup_handler",
-        ),
-        response_handler=(
+        "signup_handler": {
+            "info": "invenio_oauthclient.contrib.cern:account_info_rest",
+            "setup": "invenio_oauthclient.contrib.cern:account_setup",
+            "view": "invenio_oauthclient.handlers.rest:signup_handler",
+        },
+        "response_handler": (
             "invenio_oauthclient.handlers.rest:default_remote_response_handler"
         ),
-        authorized_redirect_url="/",
-        disconnect_redirect_url="/",
-        signup_redirect_url="/",
-        error_redirect_url="/",
-    )
+        "authorized_redirect_url": "/",
+        "disconnect_redirect_url": "/",
+        "signup_redirect_url": "/",
+        "error_redirect_url": "/",
+    }
 )
 """CERN Remote REST Application."""
 
@@ -259,11 +259,11 @@ REMOTE_SANDBOX_APP = copy.deepcopy(REMOTE_APP)
 """CERN Sandbox Remote Application."""
 
 REMOTE_SANDBOX_APP["params"].update(
-    dict(
-        base_url="https://test-oauth.web.cern.ch/",
-        access_token_url="https://test-oauth.web.cern.ch/OAuth/Token",
-        authorize_url="https://test-oauth.web.cern.ch/OAuth/Authorize",
-    )
+    {
+        "base_url": "https://test-oauth.web.cern.ch/",
+        "access_token_url": "https://test-oauth.web.cern.ch/OAuth/Token",
+        "authorize_url": "https://test-oauth.web.cern.ch/OAuth/Authorize",
+    }
 )
 
 REMOTE_APP_RESOURCE_API_URL = "https://oauthresource.web.cern.ch/api/Me"
@@ -321,9 +321,9 @@ def fetch_extra_data(resource):
     identity_class = resource.get("IdentityClass", [None])[0]
     department = resource.get("Department", [None])[0]
 
-    return dict(
-        person_id=person_id, identity_class=identity_class, department=department
-    )
+    return {
+        "person_id": person_id, "identity_class": identity_class, "department": department
+    }
 
 
 def account_groups_and_extra_data(account, resource, refresh_timedelta=None):
@@ -373,7 +373,7 @@ def get_dict_from_response(response):
     for i in response.data:
         # strip the schema from the key
         k = i["Type"].replace(REMOTE_APP_RESOURCE_SCHEMA, "")
-        result.setdefault(k, list())
+        result.setdefault(k, [])
         result[k].append(i["Value"])
     return result
 
@@ -417,15 +417,15 @@ def _account_info(remote, resp):
     nice = resource["CommonName"][0]
     name = resource["DisplayName"][0]
 
-    return dict(
-        user=dict(
-            email=email.lower(),
-            profile=dict(username=nice, full_name=name),
-        ),
-        external_id=external_id,
-        external_method="cern",
-        active=True,
-    )
+    return {
+        "user": {
+            "email": email.lower(),
+            "profile": {"username": nice, "full_name": name},
+        },
+        "external_id": external_id,
+        "external_method": "cern",
+        "active": True,
+    }
 
 
 def account_info(remote, resp):
@@ -450,7 +450,7 @@ def account_info_rest(remote, resp):
         return response_handler(
             remote,
             remote_app_config["error_redirect_url"],
-            payload=dict(message="CERN account not allowed.", code=400),
+            payload={"message": "CERN account not allowed.", "code": 400},
         )
 
 
@@ -466,7 +466,7 @@ def _disconnect(remote, *args, **kwargs):
     external_id = account.extra_data.get("external_id")
 
     if external_id:
-        oauth_unlink_external_id(dict(id=external_id, method="cern"))
+        oauth_unlink_external_id({"id": external_id, "method": "cern"})
     if account:
         with db.session.begin_nested():
             account.delete()
@@ -508,7 +508,7 @@ def account_setup(remote, token, resp):
         user = token.remote_account.user
 
         # Create user <-> external id link.
-        oauth_link_external_id(user, dict(id=external_id, method="cern"))
+        oauth_link_external_id(user, {"id": external_id, "method": "cern"})
 
 
 @identity_changed.connect

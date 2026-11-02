@@ -85,7 +85,7 @@ class RemoteAccount(db.Model, db.Timestamp):
         """
         with db.session.begin_nested():
             account = cls(
-                user_id=user_id, client_id=client_id, extra_data=extra_data or dict()
+                user_id=user_id, client_id=client_id, extra_data=extra_data or {}
             )
             db.session.add(account)
         return account
@@ -274,7 +274,7 @@ class RemoteToken(db.Model, db.Timestamp):
                 account = RemoteAccount(
                     user_id=user_id,
                     client_id=client_id,
-                    extra_data=extra_data or dict(),
+                    extra_data=extra_data or {},
                 )
                 db.session.add(account)
 

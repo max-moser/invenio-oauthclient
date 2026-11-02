@@ -119,32 +119,32 @@ class ORCIDOAuthSettingsHelper(OAuthSettingsHelper):
             signup_options=signup_options,
         )
 
-        self._handlers = dict(
-            authorized_handler="invenio_oauthclient.handlers:authorized_signup_handler",
-            disconnect_handler="invenio_oauthclient.contrib.orcid:disconnect_handler",
-            signup_handler=dict(
-                info="invenio_oauthclient.contrib.orcid:account_info",
-                info_serializer="invenio_oauthclient.contrib.orcid:account_info_serializer",
-                setup="invenio_oauthclient.contrib.orcid:account_setup",
-                view="invenio_oauthclient.handlers:signup_handler",
-            ),
-        )
+        self._handlers = {
+            "authorized_handler": "invenio_oauthclient.handlers:authorized_signup_handler",
+            "disconnect_handler": "invenio_oauthclient.contrib.orcid:disconnect_handler",
+            "signup_handler": {
+                "info": "invenio_oauthclient.contrib.orcid:account_info",
+                "info_serializer": "invenio_oauthclient.contrib.orcid:account_info_serializer",
+                "setup": "invenio_oauthclient.contrib.orcid:account_setup",
+                "view": "invenio_oauthclient.handlers:signup_handler",
+            },
+        }
 
-        self._rest_handlers = dict(
-            authorized_handler="invenio_oauthclient.handlers.rest:authorized_signup_handler",
-            disconnect_handler="invenio_oauthclient.contrib.orcid:disconnect_rest_handler",
-            signup_handler=dict(
-                info="invenio_oauthclient.contrib.orcid:account_info",
-                info_serializer="invenio_oauthclient.contrib.orcid:account_info_serializer",
-                setup="invenio_oauthclient.contrib.orcid:account_setup",
-                view="invenio_oauthclient.handlers.rest:signup_handler",
-            ),
-            response_handler="invenio_oauthclient.handlers.rest:default_remote_response_handler",
-            authorized_redirect_url="/",
-            disconnect_redirect_url="/",
-            signup_redirect_url="/",
-            error_redirect_url="/",
-        )
+        self._rest_handlers = {
+            "authorized_handler": "invenio_oauthclient.handlers.rest:authorized_signup_handler",
+            "disconnect_handler": "invenio_oauthclient.contrib.orcid:disconnect_rest_handler",
+            "signup_handler": {
+                "info": "invenio_oauthclient.contrib.orcid:account_info",
+                "info_serializer": "invenio_oauthclient.contrib.orcid:account_info_serializer",
+                "setup": "invenio_oauthclient.contrib.orcid:account_setup",
+                "view": "invenio_oauthclient.handlers.rest:signup_handler",
+            },
+            "response_handler": "invenio_oauthclient.handlers.rest:default_remote_response_handler",
+            "authorized_redirect_url": "/",
+            "disconnect_redirect_url": "/",
+            "signup_redirect_url": "/",
+            "error_redirect_url": "/",
+        }
 
     def get_handlers(self):
         """Return ORCID auth handlers."""

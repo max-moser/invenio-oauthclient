@@ -111,32 +111,32 @@ class OpenAIREAuthSettingsHelper(OAuthSettingsHelper):
             signup_options=signup_options,
         )
 
-        self._handlers = dict(
-            authorized_handler="invenio_oauthclient.handlers:authorized_signup_handler",
-            disconnect_handler="invenio_oauthclient.contrib.openaire_aai:disconnect_handler",
-            signup_handler=dict(
-                info="invenio_oauthclient.contrib.openaire_aai:account_info",
-                info_serializer="invenio_oauthclient.contrib.openaire_aai:account_info_serializer",
-                setup="invenio_oauthclient.contrib.openaire_aai:account_setup",
-                view="invenio_oauthclient.handlers:signup_handler",
-            ),
-        )
+        self._handlers = {
+            "authorized_handler": "invenio_oauthclient.handlers:authorized_signup_handler",
+            "disconnect_handler": "invenio_oauthclient.contrib.openaire_aai:disconnect_handler",
+            "signup_handler": {
+                "info": "invenio_oauthclient.contrib.openaire_aai:account_info",
+                "info_serializer": "invenio_oauthclient.contrib.openaire_aai:account_info_serializer",
+                "setup": "invenio_oauthclient.contrib.openaire_aai:account_setup",
+                "view": "invenio_oauthclient.handlers:signup_handler",
+            },
+        }
 
-        self._rest_handlers = dict(
-            authorized_handler="invenio_oauthclient.handlers.rest:authorized_signup_handler",
-            disconnect_handler="invenio_oauthclient.contrib.openaire_aai:disconnect_rest_handler",
-            signup_handler=dict(
-                info="invenio_oauthclient.contrib.openaire_aai:account_info",
-                info_serializer="invenio_oauthclient.contrib.openaire_aai:account_info_serializer",
-                setup="invenio_oauthclient.contrib.openaire_aai:account_setup",
-                view="invenio_oauthclient.handlers.rest:signup_handler",
-            ),
-            response_handler="invenio_oauthclient.handlers.rest:default_remote_response_handler",
-            authorized_redirect_url="/",
-            disconnect_redirect_url="/",
-            signup_redirect_url="/",
-            error_redirect_url="/",
-        )
+        self._rest_handlers = {
+            "authorized_handler": "invenio_oauthclient.handlers.rest:authorized_signup_handler",
+            "disconnect_handler": "invenio_oauthclient.contrib.openaire_aai:disconnect_rest_handler",
+            "signup_handler": {
+                "info": "invenio_oauthclient.contrib.openaire_aai:account_info",
+                "info_serializer": "invenio_oauthclient.contrib.openaire_aai:account_info_serializer",
+                "setup": "invenio_oauthclient.contrib.openaire_aai:account_setup",
+                "view": "invenio_oauthclient.handlers.rest:signup_handler",
+            },
+            "response_handler": "invenio_oauthclient.handlers.rest:default_remote_response_handler",
+            "authorized_redirect_url": "/",
+            "disconnect_redirect_url": "/",
+            "signup_redirect_url": "/",
+            "error_redirect_url": "/",
+        }
 
     @property
     def user_info_url(self):
@@ -178,12 +178,12 @@ REMOTE_SANDBOX_APP = _openaire_aai_sandbox_app.remote_app
 REMOTE_SANDBOX_REST_APP = _openaire_aai_sandbox_app.remote_rest_app
 """OpenAIRE Sandbox Remote REST Application."""
 
-OAUTHCLIENT_OPENAIRE_AAI_JWT_DECODE_PARAMS = dict(
-    options=dict(
-        verify_signature=False,
-        verify_aud=False,
-    ),
-    algorithms=[
+OAUTHCLIENT_OPENAIRE_AAI_JWT_DECODE_PARAMS = {
+    "options": {
+        "verify_signature": False,
+        "verify_aud": False,
+    },
+    "algorithms": [
         "HS256",
         "HS384",
         "HS512",
@@ -197,7 +197,7 @@ OAUTHCLIENT_OPENAIRE_AAI_JWT_DECODE_PARAMS = dict(
         "PS384",
         "PS512",
     ],
-)
+}
 """OpenAIRE AAI JWT decoding parameters."""
 
 
@@ -268,7 +268,7 @@ def _disconnect(remote, *args, **kwargs):
     ]
 
     if external_ids:
-        oauth_unlink_external_id(dict(id=external_ids[0], method=remote.name))
+        oauth_unlink_external_id({"id": external_ids[0], "method": remote.name})
     if remote_account:
         with db.session.begin_nested():
             remote_account.delete()

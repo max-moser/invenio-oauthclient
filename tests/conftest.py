@@ -68,54 +68,54 @@ def base_app(request):
         CACHE_TYPE="simple",
         CELERY_TASK_ALWAYS_EAGER=True,
         OAUTHCLIENT_SIGNUP_FORM=_create_registrationform,
-        OAUTHCLIENT_REMOTE_APPS=dict(
-            cern_openid=CERN_OPENID_REMOTE_APP,
-            orcid=ORCID_REMOTE_APP,
-            github=GITHUB_REMOTE_APP,
-            globus=GLOBUS_REMOTE_APP,
-            keycloak=KEYCLOAK_REMOTE_APP,
-            eosc_aai=EOSC_AAI_REMOTE_APP,
-        ),
-        OAUTHCLIENT_REST_REMOTE_APPS=dict(
-            cern_openid=CERN_OPENID_REMOTE_REST_APP,
-            orcid=ORCID_REMOTE_REST_APP,
-            github=GITHUB_REMOTE_REST_APP,
-            globus=GLOBUS_REMOTE_REST_APP,
-        ),
+        OAUTHCLIENT_REMOTE_APPS={
+            "cern_openid": CERN_OPENID_REMOTE_APP,
+            "orcid": ORCID_REMOTE_APP,
+            "github": GITHUB_REMOTE_APP,
+            "globus": GLOBUS_REMOTE_APP,
+            "keycloak": KEYCLOAK_REMOTE_APP,
+            "eosc_aai": EOSC_AAI_REMOTE_APP,
+        },
+        OAUTHCLIENT_REST_REMOTE_APPS={
+            "cern_openid": CERN_OPENID_REMOTE_REST_APP,
+            "orcid": ORCID_REMOTE_REST_APP,
+            "github": GITHUB_REMOTE_REST_APP,
+            "globus": GLOBUS_REMOTE_REST_APP,
+        },
         OAUTHCLIENT_STATE_EXPIRES=300,
-        GITHUB_APP_CREDENTIALS=dict(
-            consumer_key="github_key_changeme",
-            consumer_secret="github_secret_changeme",
-        ),
-        ORCID_APP_CREDENTIALS=dict(
-            consumer_key="orcid_key_changeme",
-            consumer_secret="orcid_secret_changeme",
-        ),
-        CERN_APP_OPENID_CREDENTIALS=dict(
-            consumer_key="cern_key_changeme",
-            consumer_secret="cern_secret_changeme",
-        ),
-        GLOBUS_APP_CREDENTIALS=dict(
-            consumer_key="globus_key_changeme",
-            consumer_secret="globus_secret_changeme",
-        ),
-        EOSC_AAI_APP_CREDENTIALS=dict(
-            consumer_key="eosc_aai_key_changeme",
-            consumer_secret="eosc_aai_secret_changeme",
-        ),
-        TEST_APP_CREDENTIALS=dict(
-            consumer_key="test_key_changeme",
-            consumer_secret="test_secret_changeme",
-        ),
+        GITHUB_APP_CREDENTIALS={
+            "consumer_key": "github_key_changeme",
+            "consumer_secret": "github_secret_changeme",
+        },
+        ORCID_APP_CREDENTIALS={
+            "consumer_key": "orcid_key_changeme",
+            "consumer_secret": "orcid_secret_changeme",
+        },
+        CERN_APP_OPENID_CREDENTIALS={
+            "consumer_key": "cern_key_changeme",
+            "consumer_secret": "cern_secret_changeme",
+        },
+        GLOBUS_APP_CREDENTIALS={
+            "consumer_key": "globus_key_changeme",
+            "consumer_secret": "globus_secret_changeme",
+        },
+        EOSC_AAI_APP_CREDENTIALS={
+            "consumer_key": "eosc_aai_key_changeme",
+            "consumer_secret": "eosc_aai_secret_changeme",
+        },
+        TEST_APP_CREDENTIALS={
+            "consumer_key": "test_key_changeme",
+            "consumer_secret": "test_secret_changeme",
+        },
         OAUTHCLIENT_KEYCLOAK_USER_INFO_URL=helper.user_info_url,
         OAUTHCLIENT_KEYCLOAK_REALM_URL=helper.realm_url,
         OAUTHCLIENT_KEYCLOAK_VERIFY_AUD=True,
         OAUTHCLIENT_KEYCLOAK_VERIFY_EXP=False,
         OAUTHCLIENT_KEYCLOAK_AUD="invenio",
-        KEYCLOAK_APP_CREDENTIALS=dict(
-            consumer_key="keycloak_key_changeme",
-            consumer_secret="keycloak_secret_changeme",
-        ),
+        KEYCLOAK_APP_CREDENTIALS={
+            "consumer_key": "keycloak_key_changeme",
+            "consumer_secret": "keycloak_secret_changeme",
+        },
         # use local memory mailbox
         EMAIL_BACKEND="flask_email.backends.locmem.Mail",
         SQLALCHEMY_DATABASE_URI=os.getenv("SQLALCHEMY_DATABASE_URI", "sqlite://"),
@@ -137,7 +137,7 @@ def base_app(request):
         SECURITY_PASSWORD_SINGLE_HASH=None,
         TRUSTED_HOSTS=["localhost"],
         APP_THEME=["semantic-ui"],
-        THEME_ICONS={"semantic-ui": dict(link="linkify icon")},
+        THEME_ICONS={"semantic-ui": {"link": "linkify icon"}},
         OAUTHCLIENT_SETTINGS_TEMPLATE="invenio_oauthclient/settings/base.html",
         USERPROFILES_EXTEND_SECURITY_FORMS=False,
     )
@@ -281,16 +281,16 @@ def params():
     """Fixture for remote app params."""
 
     def params(x):
-        return dict(
-            request_token_params={"scope": ""},
-            base_url="https://foo.bar/",
-            request_token_url=None,
-            access_token_url="https://foo.bar/oauth/access_token",
-            authorize_url="https://foo.bar/oauth/authorize",
-            consumer_key=x,
-            consumer_secret="testsecret",
-            app_key="TEST_APP_CREDENTIALS",
-        )
+        return {
+            "request_token_params": {"scope": ""},
+            "base_url": "https://foo.bar/",
+            "request_token_url": None,
+            "access_token_url": "https://foo.bar/oauth/access_token",
+            "authorize_url": "https://foo.bar/oauth/authorize",
+            "consumer_key": x,
+            "consumer_secret": "testsecret",
+            "app_key": "TEST_APP_CREDENTIALS",
+        }
 
     return params
 
@@ -301,16 +301,16 @@ def remote():
     return type(
         "test_remote",
         (),
-        dict(
-            name="example_remote",
-            request_token_params={"scope": ""},
-            base_url="https://foo.bar/",
-            request_token_url=None,
-            access_token_url="https://foo.bar/oauth/access_token",
-            authorize_url="https://foo.bar/oauth/authorize",
-            consumer_key="testkey",
-            consumer_secret="testsecret",
-        ),
+        {
+            "name": "example_remote",
+            "request_token_params": {"scope": ""},
+            "base_url": "https://foo.bar/",
+            "request_token_url": None,
+            "access_token_url": "https://foo.bar/oauth/access_token",
+            "authorize_url": "https://foo.bar/oauth/authorize",
+            "consumer_key": "testkey",
+            "consumer_secret": "testsecret",
+        },
     )()
 
 
@@ -318,32 +318,32 @@ def remote():
 def views_fixture(base_app, params, models_fixture):
     """Flask application with example data used to test views."""
     base_app.config["OAUTHCLIENT_REMOTE_APPS"].update(
-        dict(
-            test=dict(
-                authorized_handler=lambda *args, **kwargs: "TEST",
-                params=params("testid"),
-                title="MyLinkedTestAccount",
-            ),
-            test_invalid=dict(
-                authorized_handler=lambda *args, **kwargs: "TEST",
-                params=params("test_invalidid"),
-                title="Test Invalid",
-            ),
-            full=dict(
-                params=params("fullid"),
-                title="Full",
-            ),
-            hidden=dict(
-                params=params("hiddenid"),
-                title="Hidden",
-                hide=True,
-            ),
-            link_only=dict(
-                params=params("linkonlyid"),
-                title="Link only",
-                link_only=True,
-            ),
-        )
+        {
+            "test": {
+                "authorized_handler": lambda *args, **kwargs: "TEST",
+                "params": params("testid"),
+                "title": "MyLinkedTestAccount",
+            },
+            "test_invalid": {
+                "authorized_handler": lambda *args, **kwargs: "TEST",
+                "params": params("test_invalidid"),
+                "title": "Test Invalid",
+            },
+            "full": {
+                "params": params("fullid"),
+                "title": "Full",
+            },
+            "hidden": {
+                "params": params("hiddenid"),
+                "title": "Hidden",
+                "hide": True,
+            },
+            "link_only": {
+                "params": params("linkonlyid"),
+                "title": "Link only",
+                "link_only": True,
+            },
+        }
     )
 
     return _init_app(base_app)
@@ -353,52 +353,52 @@ def views_fixture(base_app, params, models_fixture):
 def views_fixture_rest(base_app, params, models_fixture):
     """Flask application with example data used to test views."""
     base_app.config["OAUTHCLIENT_REST_REMOTE_APPS"].update(
-        dict(
-            test=dict(
-                authorized_handler=lambda *args, **kwargs: "TEST",
-                authorized_redirect_url="/",
-                disconnect_redirect_url="/",
-                signup_redirect_url="/",
-                error_redirect_url="/",
-                params=params("testid"),
-                title="MyLinkedTestAccount",
-            ),
-            test_invalid=dict(
-                authorized_handler=lambda *args, **kwargs: "TEST",
-                authorized_redirect_url="/",
-                disconnect_redirect_url="/",
-                signup_redirect_url="/",
-                error_redirect_url="/",
-                params=params("test_invalidid"),
-                title="Test Invalid",
-            ),
-            full=dict(
-                params=params("fullid"),
-                authorized_redirect_url="/",
-                disconnect_redirect_url="/",
-                signup_redirect_url="/",
-                error_redirect_url="/",
-                title="Full",
-            ),
-            hidden=dict(
-                params=params("hiddenid"),
-                authorized_redirect_url="/",
-                disconnect_redirect_url="/",
-                signup_redirect_url="/",
-                error_redirect_url="/",
-                title="Hidden",
-                hide=True,
-            ),
-            link_only=dict(
-                params=params("linkonlyid"),
-                authorized_redirect_url="/",
-                disconnect_redirect_url="/",
-                signup_redirect_url="/",
-                error_redirect_url="/",
-                title="Link only",
-                link_only=True,
-            ),
-        )
+        {
+            "test": {
+                "authorized_handler": lambda *args, **kwargs: "TEST",
+                "authorized_redirect_url": "/",
+                "disconnect_redirect_url": "/",
+                "signup_redirect_url": "/",
+                "error_redirect_url": "/",
+                "params": params("testid"),
+                "title": "MyLinkedTestAccount",
+            },
+            "test_invalid": {
+                "authorized_handler": lambda *args, **kwargs: "TEST",
+                "authorized_redirect_url": "/",
+                "disconnect_redirect_url": "/",
+                "signup_redirect_url": "/",
+                "error_redirect_url": "/",
+                "params": params("test_invalidid"),
+                "title": "Test Invalid",
+            },
+            "full": {
+                "params": params("fullid"),
+                "authorized_redirect_url": "/",
+                "disconnect_redirect_url": "/",
+                "signup_redirect_url": "/",
+                "error_redirect_url": "/",
+                "title": "Full",
+            },
+            "hidden": {
+                "params": params("hiddenid"),
+                "authorized_redirect_url": "/",
+                "disconnect_redirect_url": "/",
+                "signup_redirect_url": "/",
+                "error_redirect_url": "/",
+                "title": "Hidden",
+                "hide": True,
+            },
+            "link_only": {
+                "params": params("linkonlyid"),
+                "authorized_redirect_url": "/",
+                "disconnect_redirect_url": "/",
+                "signup_redirect_url": "/",
+                "error_redirect_url": "/",
+                "title": "Link only",
+                "link_only": True,
+            },
+        }
     )
 
 
@@ -465,11 +465,11 @@ def example_orcid(request):
         "refresh_token": "test_refresh_token",
         "scope": "/authenticate",
         "token_type": "bearer",
-    }, dict(
-        external_id="0000-0002-1825-0097",
-        external_method="orcid",
-        user=dict(profile=dict(full_name="Josiah Carberry")),
-    )
+    }, {
+        "external_id": "0000-0002-1825-0097",
+        "external_method": "orcid",
+        "user": {"profile": {"full_name": "Josiah Carberry"}},
+    }
 
 
 @pytest.fixture()
@@ -483,21 +483,21 @@ def example_cern(request):
 
     return (
         OAuthResponse(resp=None, content=json_data, content_type="application/json"),
-        dict(
-            access_token="test_access_token",
-            token_type="bearer",
-            expires_in=1199,
-            refresh_token="test_refresh_token",
-        ),
-        dict(
-            user=dict(
-                email="test.account@cern.ch",
-                profile=dict(username="taccount", full_name="Test Account"),
-            ),
-            external_id="123456",
-            external_method="cern",
-            active=True,
-        ),
+        {
+            "access_token": "test_access_token",
+            "token_type": "bearer",
+            "expires_in": 1199,
+            "refresh_token": "test_refresh_token",
+        },
+        {
+            "user": {
+                "email": "test.account@cern.ch",
+                "profile": {"username": "taccount", "full_name": "Test Account"},
+            },
+            "external_id": "123456",
+            "external_method": "cern",
+            "active": True,
+        },
     )
 
 
@@ -579,13 +579,13 @@ def user_rest(app_rest_with_userprofiles):
 @pytest.fixture()
 def form_test_data():
     """Test data to fill a registration form."""
-    return dict(
-        email="test@tester.com",
-        profile=dict(
-            full_name="Test Tester",
-            username="test123",
-        ),
-    )
+    return {
+        "email": "test@tester.com",
+        "profile": {
+            "full_name": "Test Tester",
+            "username": "test123",
+        },
+    }
 
 
 @pytest.fixture()

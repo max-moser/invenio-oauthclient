@@ -349,7 +349,7 @@ def test_get_userinfo_from_token(
 ):
     """Test the "id_token" extraction mechanism from Keycloak's response."""
     mock_keycloak(
-        app.config, example_keycloak_token, dict(), example_keycloak_realm_info
+        app.config, example_keycloak_token, {}, example_keycloak_realm_info
     )
 
     token = example_keycloak_token["id_token"]

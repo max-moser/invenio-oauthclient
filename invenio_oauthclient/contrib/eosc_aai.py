@@ -82,12 +82,12 @@ from invenio_oauthclient.handlers.utils import require_more_than_one_external_ac
 from invenio_oauthclient.models import RemoteAccount
 from invenio_oauthclient.oauth import oauth_link_external_id, oauth_unlink_external_id
 
-OAUTHCLIENT_EOSC_AAI_JWT_DECODE_PARAMS = dict(
-    options=dict(
-        verify_signature=False,
-        verify_aud=False,
-    ),
-    algorithms=[
+OAUTHCLIENT_EOSC_AAI_JWT_DECODE_PARAMS = {
+    "options": {
+        "verify_signature": False,
+        "verify_aud": False,
+    },
+    "algorithms": [
         "RS256",
         "RS384",
         "RS512",
@@ -101,7 +101,7 @@ OAUTHCLIENT_EOSC_AAI_JWT_DECODE_PARAMS = dict(
         "HS384",
         "HS512",
     ],
-)
+}
 """EOSC AAI JWT decoding parameters."""
 
 
@@ -191,32 +191,32 @@ class EOSCAAIOAuthSettingsHelper(OAuthSettingsHelper):
             "invenio_oauthclient.contrib.eosc_aai:EOSCAAIOAuthRemoteApp"
         )
 
-        self._handlers = dict(
-            authorized_handler="invenio_oauthclient.handlers:authorized_signup_handler",
-            disconnect_handler="invenio_oauthclient.contrib.eosc_aai:disconnect_handler",
-            signup_handler=dict(
-                info="invenio_oauthclient.contrib.eosc_aai:account_info",
-                info_serializer="invenio_oauthclient.contrib.eosc_aai:account_info_serializer",
-                setup="invenio_oauthclient.contrib.eosc_aai:account_setup",
-                view="invenio_oauthclient.handlers:signup_handler",
-            ),
-        )
+        self._handlers = {
+            "authorized_handler": "invenio_oauthclient.handlers:authorized_signup_handler",
+            "disconnect_handler": "invenio_oauthclient.contrib.eosc_aai:disconnect_handler",
+            "signup_handler": {
+                "info": "invenio_oauthclient.contrib.eosc_aai:account_info",
+                "info_serializer": "invenio_oauthclient.contrib.eosc_aai:account_info_serializer",
+                "setup": "invenio_oauthclient.contrib.eosc_aai:account_setup",
+                "view": "invenio_oauthclient.handlers:signup_handler",
+            },
+        }
 
-        self._rest_handlers = dict(
-            authorized_handler="invenio_oauthclient.handlers.rest:authorized_signup_handler",
-            disconnect_handler="invenio_oauthclient.contrib.eosc_aai:disconnect_rest_handler",
-            signup_handler=dict(
-                info="invenio_oauthclient.contrib.eosc_aai:account_info",
-                info_serializer="invenio_oauthclient.contrib.eosc_aai:account_info_serializer",
-                setup="invenio_oauthclient.contrib.eosc_aai:account_setup",
-                view="invenio_oauthclient.handlers.rest:signup_handler",
-            ),
-            response_handler="invenio_oauthclient.handlers.rest:default_remote_response_handler",
-            authorized_redirect_url="/",
-            disconnect_redirect_url="/",
-            signup_redirect_url="/",
-            error_redirect_url="/",
-        )
+        self._rest_handlers = {
+            "authorized_handler": "invenio_oauthclient.handlers.rest:authorized_signup_handler",
+            "disconnect_handler": "invenio_oauthclient.contrib.eosc_aai:disconnect_rest_handler",
+            "signup_handler": {
+                "info": "invenio_oauthclient.contrib.eosc_aai:account_info",
+                "info_serializer": "invenio_oauthclient.contrib.eosc_aai:account_info_serializer",
+                "setup": "invenio_oauthclient.contrib.eosc_aai:account_setup",
+                "view": "invenio_oauthclient.handlers.rest:signup_handler",
+            },
+            "response_handler": "invenio_oauthclient.handlers.rest:default_remote_response_handler",
+            "authorized_redirect_url": "/",
+            "disconnect_redirect_url": "/",
+            "signup_redirect_url": "/",
+            "error_redirect_url": "/",
+        }
 
     def get_handlers(self):
         """Return EOSC AAI auth handlers."""

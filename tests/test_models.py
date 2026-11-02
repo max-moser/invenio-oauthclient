@@ -10,12 +10,12 @@ from invenio_oauthclient.models import RemoteAccount, RemoteToken
 
 def test_get_create_remote_account(app, models_fixture):
     """Test create remote account."""
-    created_acc = RemoteAccount.create(1, "dev", dict(somekey="somevalue"))
+    created_acc = RemoteAccount.create(1, "dev", {"somekey": "somevalue"})
     assert created_acc
 
     retrieved_acc = RemoteAccount.get(1, "dev")
     assert created_acc.id == retrieved_acc.id
-    assert retrieved_acc.extra_data == dict(somekey="somevalue")
+    assert retrieved_acc.extra_data == {"somekey": "somevalue"}
 
     db.session.delete(retrieved_acc)
     assert RemoteAccount.get(1, "dev") is None

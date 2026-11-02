@@ -3,7 +3,6 @@
 
 """Test utils."""
 
-import sys
 from urllib.parse import quote_plus
 
 import pytest
@@ -110,12 +109,8 @@ def test_rebuilding_access_tokens(app, models_fixture):
     db.session.expunge_all()
 
     # Asserting the decoding error occurs with the stale SECRET_KEY
-    if sys.version_info[0] < 3:  # python 2
-        remote_token = RemoteToken.query.first()
-        assert remote_token.access_token != test_token
-    else:  # python 3
-        with pytest.raises(ValueError):
-            RemoteToken.query.first()
+    with pytest.raises(ValueError):
+        RemoteToken.query.first()
 
     db.session.expunge_all()
     rebuild_access_tokens(old_secret_key)
@@ -143,7 +138,7 @@ def test_app_registrationform_has_csrf(app_with_csrf, form_test_data):
 def test_registrationform_disable_csrf(app_with_csrf, form_test_data):
     """App with CSRF enabled, test if registration form removes it."""
     remote_apps = current_oauthclient.oauth.remote_apps
-    first_remote_app = list(remote_apps.values())[0]
+    first_remote_app = next(iter(remote_apps.values()))
     filled_form = _fill_form(
         app_with_csrf,
         create_csrf_disabled_registrationform,
@@ -186,7 +181,7 @@ def test_registrationform_userprofile_disable_csrf(
 ):
     """App with CSRF enabled and UserProfile, test if reg. form removes it."""
     remote_apps = current_oauthclient.oauth.remote_apps
-    first_remote_app = list(remote_apps.values())[0]
+    first_remote_app = next(iter(remote_apps.values()))
     filled_form = _fill_form(
         app_with_userprofiles_csrf,
         create_csrf_disabled_registrationform,

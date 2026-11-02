@@ -93,10 +93,10 @@ monkey_patch_werkzeug()
 from flask_oauthlib.client import OAuth as FlaskOAuth
 
 # [ Configure application credentials ]
-ORCID_APP_CREDENTIALS = dict(
-    consumer_key=os.environ.get("ORCID_APP_CREDENTIALS_KEY"),
-    consumer_secret=os.environ.get("ORCID_APP_CREDENTIALS_SECRET"),
-)
+ORCID_APP_CREDENTIALS = {
+    "consumer_key": os.environ.get("ORCID_APP_CREDENTIALS_KEY"),
+    "consumer_secret": os.environ.get("ORCID_APP_CREDENTIALS_SECRET"),
+}
 
 # Create Flask application
 app = Flask(__name__)
@@ -106,9 +106,9 @@ app.config.update(
     SQLALCHEMY_DATABASE_URI=os.environ.get(
         "SQLALCHEMY_DATABASE_URI", "sqlite:///orcid_app_rest.db"
     ),
-    OAUTHCLIENT_REST_REMOTE_APPS=dict(
-        orcid=orcid.REMOTE_SANDBOX_REST_APP,
-    ),
+    OAUTHCLIENT_REST_REMOTE_APPS={
+        "orcid": orcid.REMOTE_SANDBOX_REST_APP,
+    },
     ORCID_APP_CREDENTIALS=ORCID_APP_CREDENTIALS,
     DEBUG=True,
     SECRET_KEY="TEST",
@@ -117,7 +117,7 @@ app.config.update(
     USERPROFILES_EXTEND_SECURITY_FORMS=True,
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
     APP_THEME=["semantic-ui"],
-    THEME_ICONS={"semantic-ui": dict(link="linkify icon")},
+    THEME_ICONS={"semantic-ui": {"link": "linkify icon"}},
 )
 
 Babel(app)
