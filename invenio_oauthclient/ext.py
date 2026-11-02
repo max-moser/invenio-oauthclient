@@ -81,75 +81,6 @@ class _OAuthClientState:
                 "Multiple OAuthClient remote apps are using the same Client ID, this will behave unexpectedly!"
             )
 
-        # self.default_response_handler = default_response_handler or dummy_handler
-        #
-        # for remote_app, conf in app.config[remote_app_config_key].items():
-        #     remote = self.oauth.register(name=remote_app, overwrite=False, **conf["params"])
-        #
-        #     # Set token getter for remote
-        #     # NOTE this got replaced by the `fetch_token` argument above
-        #     # remote.tokengetter(handlers.make_token_getter(remote))
-        #
-        #     # Register authorized handler
-        #     self.handlers[remote_app] = handlers.authorized_handler(
-        #         handlers.make_handler(
-        #             conf.get("authorized_handler", default_authorized_handler), remote
-        #         ),
-        #         remote.authorized_response,
-        #     )
-        #
-        #     # Register disconnect handler
-        #     self.disconnect_handlers[remote_app] = handlers.make_handler(
-        #         conf.get("disconnect_handler", default_disconnect_handler),
-        #         remote,
-        #         with_response=False,
-        #     )
-        #     self.remote_app_response_handler[remote_app] = obj_or_import_string(
-        #         conf.get(
-        #             "response_handler",
-        #             default_remote_app_response_handler or dummy_handler,
-        #         )
-        #     )
-        #
-        #     # Register sign-up handlers
-        #     signup_handler = conf.get("signup_handler", dict())
-        #     account_info_handler = handlers.make_handler(
-        #         signup_handler.get("info", dummy_handler), remote, with_response=False
-        #     )
-        #     account_info_serializer_handler = handlers.make_handler(
-        #         signup_handler.get("info_serializer", dummy_handler),
-        #         remote,
-        #         with_response=False,
-        #     )
-        #     account_groups_handler = handlers.make_handler(
-        #         signup_handler.get("groups", dummy_handler), remote, with_response=False
-        #     )
-        #     account_groups_serializer_handler = handlers.make_handler(
-        #         signup_handler.get("groups_serializer", dummy_handler),
-        #         remote,
-        #         with_response=False,
-        #     )
-        #     account_setup_handler = handlers.make_handler(
-        #         signup_handler.get("setup", dummy_handler), remote, with_response=False
-        #     )
-        #     account_view_handler = handlers.make_handler(
-        #         signup_handler.get("view", dummy_handler), remote, with_response=False
-        #     )
-        #
-        #     self.signup_handlers[remote_app] = dict(
-        #         info=account_info_handler,
-        #         info_serializer=account_info_serializer_handler,
-        #         groups=account_groups_handler,
-        #         groups_serializer=account_groups_serializer_handler,
-        #         setup=account_setup_handler,
-        #         view=account_view_handler,
-        #     )
-
-        # if "cern" in self.oauth.remote_apps:
-        #     warnings.warn(
-        #         "CERN Remote app is deprecated, use CERN OpenID instead.",
-        #         DeprecationWarning,
-        #     )
         app.register_blueprint(blueprint)
 
     def init_config(self, app):
@@ -169,12 +100,7 @@ class InvenioOAuthClient:
 
     def init_app(self, app):
         """Flask application initialization."""
-        state = _OAuthClientState(
-            app,
-            # "OAUTHCLIENT_REMOTE_APPS",
-            # handlers.disconnect_handler,
-            # handlers.authorized_default_handler,
-        )
+        state = _OAuthClientState(app)
         app.extensions["invenio-oauthclient"] = state
         return state
 
@@ -189,17 +115,7 @@ class InvenioOAuthClientREST:
 
     def init_app(self, app):
         """Flask application initialization."""
-        # _default_response_handler = obj_or_import_string(
-        #     app.config.get("OAUTHCLIENT_REST_DEFAULT_RESPONSE_HANDLER"),
-        #     handlers.rest.default_response_handler,
-        # )
-        # _default_remote_handler = handlers.rest.default_remote_response_handler
         state = _OAuthClientState(app)
-        # "OAUTHCLIENT_REST_REMOTE_APPS",
-        # handlers.rest.disconnect_handler,
-        # handlers.rest.authorized_default_handler,
-        # default_remote_app_response_handler=_default_remote_handler,
-        # default_response_handler=_default_response_handler,
 
         app.extensions["invenio-oauthclient"] = state
         return state
