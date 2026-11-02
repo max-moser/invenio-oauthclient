@@ -73,7 +73,7 @@ class RemoteApp(ABC):
         )
         return self.client
 
-    def register_compliance_fixes(self, session: OAuth2Client):
+    def register_compliance_fixes(self, session: OAuth2Client) -> None:
         """Register compliance fixes for the ``authlib`` client."""
 
     def get_groups(self, user_info: UserInfo, access_token: str) -> list[GroupInfo]:
@@ -138,4 +138,4 @@ class RemoteApp(ABC):
                 secret="",
             )
 
-    def handle_disconnect(self, remote_account: RemoteAccount | None): ...
+    def handle_disconnect(self, remote_account: RemoteAccount | None) -> None: ...
