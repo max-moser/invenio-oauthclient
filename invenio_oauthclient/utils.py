@@ -23,28 +23,25 @@ from flask_security import login_user, logout_user
 from flask_security.confirmable import confirm_user, requires_confirmation
 from invenio_accounts.models import User, UserIdentity
 from invenio_accounts.utils import register_user
-from invenio_base.jws import TimedJSONWebSignatureSerializer
 from invenio_db import db
 from invenio_db.utils import rebuild_encrypted_properties
 from uritools import uricompose, urisplit
 from werkzeug.local import LocalProxy
 from werkzeug.utils import import_string
 
-from .models import RemoteAccount, RemoteToken
-from .oauth import _commit, _datastore
-from .proxies import current_oauthclient
 from .data import UserInfo
+from .models import RemoteAccount, RemoteToken
+from .proxies import current_oauthclient
 from .remote import RemoteApp
 
 _security = LocalProxy(lambda: current_app.extensions["security"])
 
+_datastore = LocalProxy(lambda: _security.datastore)
 
-serializer = LocalProxy(
-    lambda: TimedJSONWebSignatureSerializer(
-        current_app.config["SECRET_KEY"],
-        expires_in=current_app.config["OAUTHCLIENT_STATE_EXPIRES"],
-    )
-)
+
+def _commit(response=None):
+    _datastore.commit()
+    return response
 
 
 def oauth_authenticate(
@@ -383,13 +380,6 @@ def obj_or_import_string(value, default=None):
     return default
 
 
-def load_or_import_from_config(key, app=None, default=None):
-    """Load or import value from config."""
-    app = app or current_app
-    imp = app.config.get(key)
-    return obj_or_import_string(imp, default=default)
-
-
 def _create_registrationform(*args, **kwargs):
     """Default registration form after external auth success."""
 
@@ -401,15 +391,19 @@ def _create_registrationform(*args, **kwargs):
     return RegistrationForm(*args, **kwargs)
 
 
-def create_registrationform(*args, **kwargs):
+def create_registrationform(*args, oauth_remote_app=None, **kwargs):
     """Make a registration form."""
     func = current_app.config["OAUTHCLIENT_SIGNUP_FORM"]
-    return func(*args, **kwargs)
+    if oauth_remote_app and oauth_remote_app.registration_form:
+        func = oauth_remote_app.registration_form
+    return func(*args, oauth_remote_app=oauth_remote_app, **kwargs)
 
 
 def create_csrf_disabled_registrationform(remote):
     """Create a registration form with CSRF disabled."""
     func = current_app.config["OAUTHCLIENT_SIGNUP_FORM"]
+    if remote and remote.registration_form:
+        func = remote.registration_form
     return func(oauth_remote_app=remote, **_get_csrf_disabled_param())
 
 
