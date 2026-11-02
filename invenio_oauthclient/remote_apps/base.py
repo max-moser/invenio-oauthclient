@@ -12,7 +12,7 @@ from authlib.oauth2.client import OAuth2Client
 from invenio_accounts.models import User
 from invenio_db import db
 
-from ..data import LazyDict, ServerMetadata, UserInfo
+from ..data import GroupInfo, LazyDict, ServerMetadata, UserInfo
 from ..models import RemoteAccount, RemoteToken, UserIdentity
 
 
@@ -75,6 +75,10 @@ class RemoteApp(ABC):
 
     def register_compliance_fixes(self, session: OAuth2Client):
         """Register compliance fixes for the ``authlib`` client."""
+
+    def get_groups(self, user_info: UserInfo, access_token: str) -> list[GroupInfo]:
+        """Get the unmanaged groups/roles for the user."""
+        return []
 
     def get_more_user_info(self, access_token: str) -> dict:
         """Fetch more user info if the ID token was not enough.

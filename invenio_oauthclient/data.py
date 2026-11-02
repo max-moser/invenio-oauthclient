@@ -11,6 +11,13 @@ class UserInfo:
 
 
 @dataclass
+class GroupInfo:
+    id: str
+    name: str
+    description: str
+
+
+@dataclass
 class ServerMetadata:
     request_token_url: str = ""
     request_token_params: dict = field(default_factory=dict)

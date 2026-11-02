@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict
 from functools import partial
 
 from authlib.integrations.base_client import OAuthError as AuthlibOAuthError
@@ -21,11 +22,12 @@ from invenio_accounts.views import login as base_login
 from invenio_db import db
 from joserfc.errors import JoseError
 
-from ..data import LazyDict
+from ..data import LazyDict, UserInfo
 from ..errors import OAuthError
 from ..models import RemoteAccount
 from ..proxies import current_oauthclient
 from ..remote_apps.base import RemoteApp
+from ..tasks import create_or_update_roles_task
 from ..utils import (
     _render_signup_form,
     create_csrf_disabled_registrationform,
@@ -42,6 +44,19 @@ from ..utils import (
 )
 
 blueprint = Blueprint("invenio_authlib_client", __name__, url_prefix="/oauth")
+
+
+def _handle_unmanaged_roles(
+    remote_app: RemoteApp, user_info: UserInfo, access_token: str
+):
+    session["unmanaged_roles_ids"] = set()
+    if groups := remote_app.get_groups(user_info=user_info, access_token=access_token):
+        create_or_update_roles_task.delay([asdict(group) for group in groups])
+
+        # Set the unmanaged roles in the user session, used in other modules.
+        # Unmanaged user roles are not stored in the DB for privacy reasons:
+        # sys admins should not know the external groups of a user.
+        session["unmanaged_roles_ids"] = {group.id for group in groups}
 
 
 @blueprint.route("/login/<remote_app:remote_app>")
@@ -67,27 +82,24 @@ def oauth_authorize(remote_app: RemoteApp):
 
     access_token = token.get("access_token")
     extra_user_info = LazyDict(partial(remote_app.get_more_user_info, access_token))
-    token_user_info = remote_app.parse_user_info(
-        token.get("userinfo", {}), extra_user_info
-    )
-    user_info = token_user_info.user
+    user_info = remote_app.parse_user_info(token.get("userinfo", {}), extra_user_info)
 
     # TODO check if access_token is supposed to be present
-    if user := oauth_get_user(remote_app, token_user_info, access_token):
+    if user := oauth_get_user(remote_app, user_info, access_token):
         if not oauth_authenticate(remote_app, user):
             # TODO handle login failure
             pass
 
     else:
-        flash(f"User not found for user info: {user_info}")
+        flash(f"User not found for user info: {user_info.user}")
         # Try to register the user with the information that we have
         form = create_csrf_disabled_registrationform(remote_app)
-        fill_form(form, user_info)
+        fill_form(form, user_info.user)
 
         # TODO replace this ugly call, maybe per app?
-        if (user := oauth_register(form, user_info, signup_options={})) is None:
+        if (user := oauth_register(form, user_info.user, signup_options={})) is None:
             # If registration did not work, then the user has to fill out a form
-            session[f"{remote_app.name}_userinfo"] = token_user_info
+            session[f"{remote_app.name}_userinfo"] = user_info
             session[f"{remote_app.name}_token"] = token
             return redirect(url_for(".register", remote_app=remote_app))
         else:
@@ -98,10 +110,13 @@ def oauth_authorize(remote_app: RemoteApp):
     # NOTE: the refresh token typically only gets supplied if "offline_access" is in the scope
     remote_app.finalize_login(
         user,
-        token_user_info,
+        user_info,
         access_token,
         refresh_token=token.get("refresh_token"),
         expires_at=parse_expires_at(token.get("expires_at")),
+    )
+    _handle_unmanaged_roles(
+        remote_app=remote_app, user_info=user_info, access_token=access_token
     )
     session["OAUTHCLIENT_SESSION_REMOTE_NAME"] = remote_app.name
     db.session.commit()
@@ -146,6 +161,11 @@ def register(remote_app: RemoteApp):
                 token["access_token"],
                 refresh_token=token.get("refresh_token"),
                 expires_at=parse_expires_at(token.get("expires_at")),
+            )
+            _handle_unmanaged_roles(
+                remote_app=remote_app,
+                user_info=user_info,
+                access_token=token["access_token"],
             )
             db.session.commit()
             return redirect(get_session_next_url(remote_app))
