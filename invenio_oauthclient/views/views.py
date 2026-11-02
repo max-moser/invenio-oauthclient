@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from collections import UserDict
+from functools import partial
 
 from authlib.integrations.base_client import OAuthError as AuthlibOAuthError
 from flask import (
@@ -20,8 +20,8 @@ from invenio_accounts.models import UserIdentity
 from invenio_accounts.views import login as base_login
 from invenio_db import db
 from joserfc.errors import JoseError
-from requests import HTTPError
 
+from ..data import LazyDict
 from ..errors import OAuthError
 from ..models import RemoteAccount
 from ..proxies import current_oauthclient
@@ -40,28 +40,6 @@ from ..utils import (
     require_more_than_one_external_account,
     set_session_next_url,
 )
-
-
-class LazyDict(UserDict):
-    def __init__(self, load_func):
-        self._data = None
-        self.load_func = load_func
-
-    @property
-    def data(self):
-        if self._data is None:
-            self._data = self.load_func()
-        return self._data
-
-    def __getitem__(self, key):
-        return self.data[key]
-
-    def get(self, key, default=None):
-        return self.data.get(key, default)
-
-    def __len__(self):
-        return len(self.data)
-
 
 blueprint = Blueprint("invenio_authlib_client", __name__, url_prefix="/oauth")
 
