@@ -65,23 +65,10 @@ def oauth_authorize(remote_app: RemoteApp):
         flash("Authentication failed.", category="error")
         return redirect("/")
 
-    # The initial ID token may hold very limited information, so we fetch more
-    # user info from the endpoint and perform a quick sanity check
-    # (only when actually needed, with the local proxy)
-    def _get_user_info():
-        try:
-            remote_user_info = remote_app.client.userinfo()
-            if "userinfo" in token:
-                assert remote_user_info["sub"] == token["userinfo"]["sub"]
-            return dict(remote_user_info)
-        except HTTPError as e:
-            current_app.logger.error(e)
-            return {}
-
     access_token = token.get("access_token")
-    remote_user_info = LazyDict(_get_user_info)
+    extra_user_info = LazyDict(partial(remote_app.get_more_user_info, access_token))
     token_user_info = remote_app.parse_user_info(
-        token.get("userinfo", {}), remote_user_info, access_token
+        token.get("userinfo", {}), extra_user_info
     )
     user_info = token_user_info.user
 

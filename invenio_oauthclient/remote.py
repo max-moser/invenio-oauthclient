@@ -11,9 +11,11 @@ from authlib.integrations.flask_client import FlaskOAuth2App, OAuth
 from authlib.oauth2.client import OAuth2Client
 from invenio_accounts.models import User
 from invenio_db import db
+from requests import HTTPError
 
-from .data import ServerMetadata, UserInfo
+from .data import LazyDict, ServerMetadata, UserInfo
 from .models import RemoteAccount, RemoteToken, UserIdentity
+from .proxies import current_app
 
 
 class RemoteApp(ABC):
@@ -73,11 +75,26 @@ class RemoteApp(ABC):
         )
         return self.client
 
-    def register_compliance_fixes(self, session: OAuth2Client): ...
+    def register_compliance_fixes(self, session: OAuth2Client):
+        """Register compliance fixes for the ``authlib`` client."""
 
-    def parse_user_info(
-        self, id_token: dict, user_info: dict, access_token: str
-    ) -> UserInfo: ...
+    def get_more_user_info(self, access_token: str) -> dict:
+        """Fetch more user info if the ID token was not enough.
+
+        This method will be used lazily if the initially provided user information
+        (e.g. via the ID token) is not enough.
+        In the case of OIDC, this will typically query the ``userinfo`` endpoint.
+        For OAuth2 applications, this may require specific handling.
+        """
+
+    def parse_user_info(self, id_token: dict, extra_user_info: LazyDict) -> UserInfo:
+        """Translate the received user information to what Invenio expects.
+
+        The provided ``user_info`` lazy dictionary will only call its backing source
+        if it gets accessed.
+        So if the information from the ``id_token`` is sufficient, simply not accessing
+        the ``extra_user_info`` values may save a network round trip.
+        """
 
     def finalize_login(
         self,
@@ -123,15 +140,23 @@ class RemoteApp(ABC):
 
 
 class OIDCRemoteApp(RemoteApp):
-    def parse_user_info(
-        self, id_token: dict, user_info: dict, access_token: str
-    ) -> UserInfo:
-        email = id_token.get("email") or user_info["email"]
-        full_name = id_token.get("name") or user_info.get("name")
-        username = id_token.get("preferred_username") or user_info.get(
+    def get_more_user_info(self, access_token: str) -> dict:
+        try:
+            remote_user_info = self.client.userinfo()
+            return dict(remote_user_info)
+        except HTTPError as e:
+            current_app.logger.error(e)
+            return {}
+
+    def parse_user_info(self, id_token: dict, extra_user_info: dict) -> UserInfo:
+        email = id_token.get("email") or extra_user_info["email"]
+        full_name = id_token.get("name") or extra_user_info.get("name")
+        username = id_token.get("preferred_username") or extra_user_info.get(
             "preferred_username"
         )
-        affiliations = id_token.get("affiliation") or user_info.get("affiliation") or ""
+        affiliations = (
+            id_token.get("affiliation") or extra_user_info.get("affiliation") or ""
+        )
 
         user = {
             "active": True,
@@ -142,7 +167,7 @@ class OIDCRemoteApp(RemoteApp):
                 "affiliations": affiliations,
             },
         }
-        external_id = id_token.get("sub") or user_info["sub"]
+        external_id = id_token.get("sub") or extra_user_info["sub"]
         external_method = self.name
         extra_data = {}
 
