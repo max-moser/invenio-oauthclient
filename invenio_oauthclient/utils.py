@@ -32,7 +32,7 @@ from werkzeug.utils import import_string
 from .data import UserInfo
 from .models import RemoteAccount, RemoteToken
 from .proxies import current_oauthclient
-from .remote import RemoteApp
+from .remote_apps import RemoteApp
 
 _security = LocalProxy(lambda: current_app.extensions["security"])
 
