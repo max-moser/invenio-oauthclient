@@ -24,9 +24,14 @@ from joserfc.errors import JoseError
 
 from ..data import LazyDict, UserInfo
 from ..errors import OAuthError
-from ..models import RemoteAccount
+from ..models import RemoteAccount, RemoteToken
 from ..proxies import current_oauthclient
 from ..remote_apps.base import RemoteApp
+from ..signals import (
+    account_info_received,
+    account_setup_committed,
+    account_setup_received,
+)
 from ..tasks import create_or_update_roles_task
 from ..utils import (
     _render_signup_form,
@@ -84,6 +89,11 @@ def oauth_authorize(remote_app: RemoteApp):
     extra_user_info = LazyDict(partial(remote_app.get_more_user_info, access_token))
     user_info = remote_app.parse_user_info(token.get("userinfo", {}), extra_user_info)
 
+    # Send the "account info" signal as backwards-compatible as possible
+    account_info_received.send(
+        remote_app, response=token, account_info=asdict(user_info)
+    )
+
     # TODO check if access_token is supposed to be present
     if user := oauth_get_user(remote_app, user_info, access_token):
         if not oauth_authenticate(remote_app, user):
@@ -108,6 +118,7 @@ def oauth_authorize(remote_app: RemoteApp):
                 pass
 
     # NOTE: the refresh token typically only gets supplied if "offline_access" is in the scope
+    is_first_login = RemoteToken.get(user.id, remote_app.client_id) is None
     remote_app.finalize_login(
         user,
         user_info,
@@ -119,7 +130,23 @@ def oauth_authorize(remote_app: RemoteApp):
         remote_app=remote_app, user_info=user_info, access_token=access_token
     )
     session["OAUTHCLIENT_SESSION_REMOTE_NAME"] = remote_app.name
+
+    # Send the "account setup" signal as backwards-compatible as possible on first login
+    remote_token = RemoteToken.get(user.id, remote_app.client_id)
+    if is_first_login:
+        account_setup_received.send(
+            remote_app,
+            token=remote_token,
+            response=token,
+            account_setup=user_info.extra_data,
+        )
+
     db.session.commit()
+
+    # Send the "account setup committed" signal as backwards-compatible as possible
+    if is_first_login:
+        account_setup_committed.send(remote_app, token=remote_token)
+
     return redirect(get_session_next_url(remote_app))
 
 
@@ -167,7 +194,21 @@ def register(remote_app: RemoteApp):
                 user_info=user_info,
                 access_token=token["access_token"],
             )
+
+            # Send the "account setup" signal as backwards-compatible as possible on first login
+            remote_token = RemoteToken.get(user.id, remote_app.client_id)
+            account_setup_received.send(
+                remote_app,
+                token=remote_token,
+                response=token,
+                account_setup=user_info.extra_data,
+            )
+
             db.session.commit()
+
+            # Send the "account setup committed" signal as backwards-compatible as possible
+            account_setup_committed.send(remote_app, token=remote_token)
+
             return redirect(get_session_next_url(remote_app))
 
     # TODO provide REST endpoint for this as well
