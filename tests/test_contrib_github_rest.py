@@ -19,13 +19,13 @@ from helpers import (
 )
 from invenio_accounts.models import User
 from invenio_db import db
-from invenio_oauthclient._compat import _create_identifier
-from invenio_oauthclient.views.client import serializer
 
 from invenio_oauthclient import current_oauthclient
+from invenio_oauthclient._compat import _create_identifier
 from invenio_oauthclient.contrib.github import authorized_rest
 from invenio_oauthclient.errors import OAuthResponseError
 from invenio_oauthclient.models import RemoteAccount, RemoteToken, UserIdentity
+from invenio_oauthclient.views.client import serializer
 
 
 def _get_state():

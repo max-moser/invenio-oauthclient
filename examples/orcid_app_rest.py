@@ -75,8 +75,6 @@ from invenio_accounts.views import blueprint as blueprint_user
 from invenio_db import InvenioDB
 from invenio_i18n import Babel
 from invenio_mail import InvenioMail as Mail
-from invenio_oauthclient._compat import monkey_patch_werkzeug
-from invenio_oauthclient.views.client import rest_blueprint as blueprint_client
 from invenio_userprofiles import InvenioUserProfiles
 from invenio_userprofiles.views import (
     blueprint_api_init as blueprint_userprofile_api_init,
@@ -86,7 +84,9 @@ from invenio_userprofiles.views import (
 )
 
 from invenio_oauthclient import InvenioOAuthClientREST
+from invenio_oauthclient._compat import monkey_patch_werkzeug
 from invenio_oauthclient.contrib import orcid
+from invenio_oauthclient.views.client import rest_blueprint as blueprint_client
 
 monkey_patch_werkzeug()
 

@@ -13,6 +13,10 @@ from flask_security.confirmable import _security
 from helpers import check_response_redirect_url_args
 from invenio_accounts.models import Role
 from invenio_accounts.proxies import current_datastore
+from werkzeug.routing import BuildError
+
+from invenio_oauthclient import InvenioOAuthClientREST, current_oauthclient
+from invenio_oauthclient.errors import AlreadyLinkedError
 from invenio_oauthclient.handlers import token_session_key, token_setter
 from invenio_oauthclient.handlers.rest import (
     authorized_signup_handler,
@@ -21,13 +25,9 @@ from invenio_oauthclient.handlers.rest import (
     response_handler_postmessage,
     signup_handler,
 )
+from invenio_oauthclient.models import RemoteToken
 from invenio_oauthclient.oauth import oauth_authenticate
 from invenio_oauthclient.views.client import rest_blueprint
-from werkzeug.routing import BuildError
-
-from invenio_oauthclient import InvenioOAuthClientREST, current_oauthclient
-from invenio_oauthclient.errors import AlreadyLinkedError
-from invenio_oauthclient.models import RemoteToken
 
 REMOTE_APPS = ["github", "orcid", "globus"]
 

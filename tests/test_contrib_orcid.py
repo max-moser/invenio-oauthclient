@@ -13,9 +13,9 @@ from flask_security.utils import hash_password
 from helpers import get_state, mock_response
 from invenio_accounts.models import User
 from invenio_db import db
-from invenio_oauthclient.handlers import token_session_key
 
 from invenio_oauthclient.contrib.orcid import account_info
+from invenio_oauthclient.handlers import token_session_key
 from invenio_oauthclient.models import RemoteAccount, RemoteToken, UserIdentity
 
 

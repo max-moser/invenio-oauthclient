@@ -213,7 +213,10 @@ BASE_APP = {
         "authorize_url": "https://oauth.web.cern.ch/OAuth/Authorize",
         "app_key": "CERN_APP_CREDENTIALS",
         "content_type": "application/json",
-        "request_token_params": {"scope": "Name Email Bio Groups", "show_login": "true"},
+        "request_token_params": {
+            "scope": "Name Email Bio Groups",
+            "show_login": "true",
+        },
     },
 }
 
@@ -322,7 +325,9 @@ def fetch_extra_data(resource):
     department = resource.get("Department", [None])[0]
 
     return {
-        "person_id": person_id, "identity_class": identity_class, "department": department
+        "person_id": person_id,
+        "identity_class": identity_class,
+        "department": department,
     }
 
 

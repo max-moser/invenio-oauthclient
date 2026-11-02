@@ -3,7 +3,6 @@
 
 """Create oauthclient branch."""
 
-
 # revision identifiers, used by Alembic.
 revision = "44ab9963e8cf"
 down_revision = None

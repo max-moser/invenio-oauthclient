@@ -4,11 +4,11 @@
 """Test handlers."""
 
 import pytest
-from invenio_oauthclient.handlers import response_token_setter, token_getter
-from invenio_oauthclient.oauth import oauth_authenticate
 
 from invenio_oauthclient.errors import OAuthResponseError
+from invenio_oauthclient.handlers import response_token_setter, token_getter
 from invenio_oauthclient.models import RemoteToken
+from invenio_oauthclient.oauth import oauth_authenticate
 
 
 def test_token_setter(app, remote):

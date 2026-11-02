@@ -348,9 +348,7 @@ def test_get_userinfo_from_token(
     app, example_keycloak_token, example_keycloak_userinfo, example_keycloak_realm_info
 ):
     """Test the "id_token" extraction mechanism from Keycloak's response."""
-    mock_keycloak(
-        app.config, example_keycloak_token, {}, example_keycloak_realm_info
-    )
+    mock_keycloak(app.config, example_keycloak_token, {}, example_keycloak_realm_info)
 
     token = example_keycloak_token["id_token"]
     options = {"verify_signature": False}

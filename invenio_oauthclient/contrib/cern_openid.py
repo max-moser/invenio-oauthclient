@@ -285,7 +285,10 @@ def _account_info(remote, resp):
     name = resource["name"]
 
     return {
-        "user": {"email": email.lower(), "profile": {"username": nice, "full_name": name}},
+        "user": {
+            "email": email.lower(),
+            "profile": {"username": nice, "full_name": name},
+        },
         "external_id": external_id,
         "external_method": "cern_openid",
         "active": True,
@@ -388,7 +391,9 @@ def on_identity_changed(sender, identity):
     # However, it is not harmful because it will simply fetch the extra roles cached
     # in the DB.
     # Changing this requires large refactoring.
-    logged_in_via_token = hasattr(current_user, "login_via_oauth2") and current_user.login_via_oauth2
+    logged_in_via_token = (
+        hasattr(current_user, "login_via_oauth2") and current_user.login_via_oauth2
+    )
 
     remote = g.get("oauth_logged_in_with_remote", None)
     logged_in_with_cern_openid = remote and remote.name == "cern_openid"

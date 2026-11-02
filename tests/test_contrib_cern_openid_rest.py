@@ -102,7 +102,9 @@ def test_account_setup(app_rest, example_cern_openid_rest, models_fixture):
         )
         assert resp.status_code == 302
 
-        example_response, example_token, _example_account_info = example_cern_openid_rest
+        example_response, example_token, _example_account_info = (
+            example_cern_openid_rest
+        )
 
         mock_response(
             app_rest.extensions["oauthlib.client"], "cern_openid", example_token

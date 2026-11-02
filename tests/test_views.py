@@ -16,14 +16,14 @@ from helpers import check_response_redirect_url
 from invenio_accounts.testutils import login_user_via_session
 from invenio_base.jws import TimedJSONWebSignatureSerializer
 from invenio_db import db
-from invenio_oauthclient._compat import _create_identifier
-from invenio_oauthclient.handlers import token_getter
-from invenio_oauthclient.views.client import blueprint as blueprint_client
-from invenio_oauthclient.views.client import serializer
 from simplejson import JSONDecodeError
 
 from invenio_oauthclient import InvenioOAuthClient
+from invenio_oauthclient._compat import _create_identifier
+from invenio_oauthclient.handlers import token_getter
 from invenio_oauthclient.models import RemoteAccount, RemoteToken
+from invenio_oauthclient.views.client import blueprint as blueprint_client
+from invenio_oauthclient.views.client import serializer
 from invenio_oauthclient.views.settings import blueprint as blueprint_settings
 
 

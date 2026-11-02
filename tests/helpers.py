@@ -9,6 +9,7 @@ from unittest.mock import MagicMock
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import httpretty
+
 from invenio_oauthclient._compat import _create_identifier
 from invenio_oauthclient.views.client import serializer
 

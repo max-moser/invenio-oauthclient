@@ -18,8 +18,6 @@ from invenio_accounts import InvenioAccounts
 from invenio_celery import InvenioCelery
 from invenio_db import InvenioDB, db
 from invenio_i18n import Babel, InvenioI18N
-from invenio_oauthclient.views.client import blueprint as blueprint_client
-from invenio_oauthclient.views.client import rest_blueprint
 from invenio_userprofiles import InvenioUserProfiles
 from invenio_userprofiles.ext import finalize_app as userprofiles_finalize_app
 from invenio_userprofiles.views import create_blueprint
@@ -39,6 +37,8 @@ from invenio_oauthclient.contrib.keycloak import KeycloakSettingsHelper
 from invenio_oauthclient.contrib.orcid import REMOTE_APP as ORCID_REMOTE_APP
 from invenio_oauthclient.contrib.orcid import REMOTE_REST_APP as ORCID_REMOTE_REST_APP
 from invenio_oauthclient.utils import _create_registrationform
+from invenio_oauthclient.views.client import blueprint as blueprint_client
+from invenio_oauthclient.views.client import rest_blueprint
 from invenio_oauthclient.views.settings import blueprint as blueprint_settings
 
 from invenio_oauthclient._compat import monkey_patch_werkzeug  # noqa isort:skip
