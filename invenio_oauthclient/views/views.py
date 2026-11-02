@@ -25,7 +25,7 @@ from ..data import LazyDict
 from ..errors import OAuthError
 from ..models import RemoteAccount
 from ..proxies import current_oauthclient
-from ..remote import RemoteApp
+from ..remote_apps.base import RemoteApp
 from ..utils import (
     _render_signup_form,
     create_csrf_disabled_registrationform,

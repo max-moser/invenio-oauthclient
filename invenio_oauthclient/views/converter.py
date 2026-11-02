@@ -6,7 +6,7 @@ from __future__ import annotations
 from werkzeug.routing import BaseConverter, ValidationError
 
 from ..proxies import current_oauthclient
-from ..remote import RemoteApp
+from ..remote_apps.base import RemoteApp
 
 
 class RemoteAppConverter(BaseConverter):
