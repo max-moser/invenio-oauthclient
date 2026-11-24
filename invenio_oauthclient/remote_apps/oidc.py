@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2026 TU Wien.
 # SPDX-License-Identifier: MIT
 
-from __future__ import annotations
-
 from authlib.oauth2.client import OAuth2Client
 from flask import current_app
 from requests import HTTPError

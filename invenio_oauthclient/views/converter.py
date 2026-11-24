@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2026 TU Wien.
 # SPDX-License-Identifier: MIT
 
-from __future__ import annotations
-
 from werkzeug.routing import BaseConverter, ValidationError
 
 from ..proxies import current_oauthclient
