@@ -4,6 +4,7 @@
 from abc import ABC
 from dataclasses import asdict
 from datetime import datetime
+from typing import Callable
 
 from authlib.integrations.flask_client import FlaskOAuth2App, OAuth
 from authlib.oauth2.client import OAuth2Client
@@ -22,8 +23,10 @@ class RemoteApp(ABC):
         client_id: str,
         client_secret: str,
         scope: list[str] | str,
-        hidden: bool = False,
+        hidden: bool | Callable[[], bool] = False,
         link_only: bool = False,
+        precedence_mask: dict | None = None,
+        signup_options: dict | None = None,
         title: str = "",
         description: str = "",
         icon: str = "",
@@ -34,8 +37,14 @@ class RemoteApp(ABC):
         self.client_id = client_id
         self.client_secret = client_secret
         self.scope = scope if isinstance(scope, str) else " ".join(scope)
-        self.hidden = hidden
+        self._hidden = hidden
         self.link_only = link_only
+        self.precedence_mask = precedence_mask or {}
+        self.signup_options = (
+            signup_options
+            if signup_options is not None
+            else {"auto_confirm": True, "send_register_msg": True}
+        )
 
         self.title = title or self.name.title()
         self.description = description
@@ -53,6 +62,14 @@ class RemoteApp(ABC):
         else:
             self.server_metadata = asdict(server_metadata)
             self.client_kwargs.update(self.server_metadata.pop("client_kwargs", {}))
+
+    @property
+    def is_hidden(self):
+        """Check if the remote app is (currently) hidden."""
+        if callable(self._hidden):
+            return self._hidden()
+        else:
+            return self._hidden
 
     def register(self, oauth: OAuth) -> FlaskOAuth2App:
         # TODO use server_metadata if not server_metadata_url

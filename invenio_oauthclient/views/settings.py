@@ -39,7 +39,7 @@ def index():
     services: list[RemoteInfo] = []
 
     remote_apps = current_oauthclient.clients.values()
-    visible_remote_apps = [app for app in remote_apps if not app.hidden]
+    visible_remote_apps = [app for app in remote_apps if not app.is_hidden]
 
     # Fetch already linked accounts
     accounts = RemoteAccount.query.filter_by(user_id=current_user.get_id()).all()

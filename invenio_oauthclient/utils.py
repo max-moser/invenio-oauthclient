@@ -245,7 +245,7 @@ def require_more_than_one_external_account(f):
         client_ids = {
             remote_app.client_id
             for remote_app in current_oauthclient.clients.values()
-            if not remote_app.hidden
+            if not remote_app.is_hidden
         }
         linked_accounts = RemoteAccount.query.filter(
             RemoteAccount.user_id == current_user.get_id(),

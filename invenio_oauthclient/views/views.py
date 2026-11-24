@@ -105,7 +105,14 @@ def oauth_authorize(remote_app: RemoteApp):
         fill_form(form, user_info.user)
 
         # TODO replace this ugly call, maybe per app?
-        if (user := oauth_register(form, user_info.user, signup_options={})) is None:
+        if (
+            user := oauth_register(
+                form,
+                user_info.user,
+                precedence_mask=remote_app.precedence_mask,
+                signup_options=remote_app.signup_options,
+            )
+        ) is None:
             # If registration did not work, then the user has to fill out a form
             session[f"{remote_app.name}_userinfo"] = user_info
             session[f"{remote_app.name}_token"] = token
@@ -173,7 +180,14 @@ def register(remote_app: RemoteApp):
 
     else:
         # TODO replace this ugly call, maybe per app?
-        if (user := oauth_register(form, {}, signup_options={})) is None:
+        if (
+            user := oauth_register(
+                form,
+                {},
+                precedence_mask=remote_app.precedence_mask,
+                signup_options=remote_app.signup_options,
+            )
+        ) is None:
             flash(form)
             # Form data valid, but impossible to create user
             raise OAuthError("Could not create user", remote_app)
@@ -269,7 +283,7 @@ def auto_redirect_login(*args, **kwargs):
     would_redirect = auto_redirect_enabled and not local_login_enabled
     remote_apps = current_oauthclient.clients.values()
     visible_remote_apps = [
-        app for app in remote_apps if not app.hidden and not app.link_only
+        app for app in remote_apps if not app.is_hidden and not app.link_only
     ]
 
     if would_redirect and len(visible_remote_apps) == 1:
