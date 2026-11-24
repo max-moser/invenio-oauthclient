@@ -46,7 +46,7 @@ from ..utils import (
     set_session_next_url,
 )
 
-blueprint = Blueprint("invenio_authlib_client", __name__, url_prefix="/oauth")
+blueprint = Blueprint("invenio_oauthclient", __name__, url_prefix="/oauth")
 
 
 def _handle_unmanaged_roles(
@@ -295,7 +295,7 @@ def auto_redirect_login(*args, **kwargs):
         next_url = request.args.get("next")
         if next_url:
             redirect_args["next"] = next_url
-        url = url_for("invenio_authlib_client.login", **redirect_args)
+        url = url_for("invenio_oauthclient.login", **redirect_args)
         return redirect(url)
 
     else:
