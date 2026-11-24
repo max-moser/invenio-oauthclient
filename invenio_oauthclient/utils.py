@@ -26,6 +26,7 @@ from invenio_db.utils import rebuild_encrypted_properties
 from uritools import uricompose, urisplit
 from werkzeug.local import LocalProxy
 from werkzeug.utils import import_string
+from wtforms import Form
 
 from .data import UserInfo
 from .models import RemoteAccount, RemoteToken
@@ -100,7 +101,7 @@ def oauth_get_user(
 
 
 def oauth_register(
-    form,
+    form: Form,
     user_info: dict | None = None,
     precedence_mask: dict | None = None,
     signup_options: dict | None = None,
@@ -450,9 +451,9 @@ def _render_signup_form(remote_app: RemoteApp, form, account_info: dict):
         current_app.config["OAUTHCLIENT_SIGNUP_TEMPLATE"],
         form=form,
         # remote=remote,
-        app_title=remote_app.name,
-        app_description="description eh?",
-        app_icon="no icon here",
+        app_title=remote_app.title,
+        app_description=remote_app.description,
+        app_icon=remote_app.icon,
     )
 
 
