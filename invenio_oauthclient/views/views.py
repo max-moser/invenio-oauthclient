@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 from dataclasses import asdict
-from functools import partial
+from functools import partial, wraps
 
 from authlib.integrations.base_client import OAuthError as AuthlibOAuthError
 from flask import (
@@ -18,6 +18,7 @@ from flask_login import current_user, login_user
 from invenio_accounts.models import UserIdentity
 from invenio_accounts.views import login as base_login
 from invenio_db import db
+from invenio_i18n import gettext as _
 from joserfc.errors import JoseError
 
 from ..data import LazyDict, UserInfo
@@ -46,6 +47,25 @@ from ..utils import (
     set_session_next_url,
 )
 
+
+def link_only_requires_login(func):
+    """Only allow link-only flows if the user is already authenticated."""
+
+    @wraps(func)
+    def inner(remote_app):
+        if not current_user.is_authenticated and remote_app.link_only:
+            msg = _(
+                "You can only link %(title)s if you have already signed in through a different method.",
+                title=remote_app.title,
+            )
+            flash(msg)
+            return redirect(url_for(current_app.login_manager.login_view))
+        else:
+            return func(remote_app)
+
+    return inner
+
+
 blueprint = Blueprint("invenio_oauthclient", __name__, url_prefix="/oauth")
 
 
@@ -63,6 +83,7 @@ def _handle_unmanaged_roles(
 
 
 @blueprint.route("/login/<remote_app:remote_app>")
+@link_only_requires_login
 def login(remote_app: RemoteApp):
     """Start the authentication workflow with the given remote app."""
     next_param = get_safe_redirect_target(arg="next")
@@ -74,6 +95,7 @@ def login(remote_app: RemoteApp):
 
 @blueprint.route("/authorized/<remote_app:remote_app>/")  # for back-compat
 @blueprint.route("/authorized/<remote_app:remote_app>")
+@link_only_requires_login
 def oauth_authorize(remote_app: RemoteApp):
     # Note: Authlib takes care of ID token validation (aud, iss, etc.)
     try:
@@ -93,7 +115,11 @@ def oauth_authorize(remote_app: RemoteApp):
     )
 
     # TODO check if access_token is supposed to be present
-    if user := oauth_get_user(remote_app, user_info, access_token):
+    if remote_app.link_only:
+        # With the decorator guard, we know that the user was authenticated
+        user = current_user
+
+    elif user := oauth_get_user(remote_app, user_info, access_token):
         if not oauth_authenticate(remote_app, user):
             # TODO handle login failure
             pass
