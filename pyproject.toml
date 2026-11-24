@@ -55,7 +55,7 @@ invenio_oauthclient = "invenio_oauthclient:InvenioOAuthClientREST"
 invenio_oauthclient = "invenio_oauthclient:InvenioOAuthClient"
 
 [project.entry-points."invenio_base.blueprints"]
-# invenio_oauthclient = "invenio_oauthclient.views.client:blueprint"
+invenio_oauthclient = "invenio_oauthclient.views:ui_blueprint"
 invenio_oauthclient_settings = "invenio_oauthclient.views.settings:blueprint"
 
 [project.entry-points."invenio_base.finalize_app"]

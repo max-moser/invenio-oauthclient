@@ -4,9 +4,9 @@
 """Blueprints for oauthclient."""
 
 from .settings import blueprint as settings_blueprint
-from .views import blueprint
+from .ui import ui_blueprint
 
 blueprints = [
-    blueprint,
     settings_blueprint,
+    ui_blueprint,
 ]

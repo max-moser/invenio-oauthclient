@@ -25,7 +25,6 @@ from .utils import (
     obj_or_import_string,
     refresh_token,
 )
-from .views import blueprint
 
 # from flask_oauthlib.client import OAuth as FlaskOAuth
 from flask_oauthlib.client import OAuthRemoteApp  # noqa isort:skip
@@ -80,8 +79,6 @@ class _OAuthClientState:
             app.logger.warning(
                 "Multiple OAuthClient remote apps are using the same Client ID, this will behave unexpectedly!"
             )
-
-        app.register_blueprint(blueprint)
 
     def init_config(self, app):
         """Initialize configuration."""
