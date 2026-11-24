@@ -13,11 +13,15 @@ from flask import (
     url_for,
 )
 from flask_login import current_user
+from flask_security import login_user
+from invenio_accounts.models import User
 from invenio_db import db
 from invenio_i18n import gettext as _
 from joserfc.errors import JoseError
+from wtforms import Form
 
 from ..data import LazyDict, UserInfo
+from ..errors import OAuthError
 from ..models import RemoteToken
 from ..remote_apps.base import RemoteApp
 from ..signals import (
@@ -151,3 +155,52 @@ def core_authorized_handler(remote_app: RemoteApp) -> str | None:
         account_setup_committed.send(remote_app, token=remote_token)
 
     return None
+
+
+def complete_registration(
+    remote_app: RemoteApp, form: Form, user_info: UserInfo, token: dict
+) -> User:
+    user = oauth_register(
+        form,
+        user_info.user,
+        precedence_mask=remote_app.precedence_mask,
+        signup_options=remote_app.signup_options,
+    )
+    if user is None:
+        # Form data valid, but impossible to create user
+        raise OAuthError("Could not create user", remote_app)
+
+    login_user(user)
+    is_first_login = RemoteToken.get(user.id, remote_app.client_id) is None
+
+    # NOTE: the refresh token typically only gets supplied if "offline_access" is in the scope
+    remote_app.finalize_login(
+        user,
+        user_info,
+        token["access_token"],
+        refresh_token=token.get("refresh_token"),
+        expires_at=parse_expires_at(token.get("expires_at")),
+    )
+    _handle_unmanaged_roles(
+        remote_app=remote_app,
+        user_info=user_info,
+        access_token=token["access_token"],
+    )
+
+    # Send the "account setup" signal as backwards-compatible as possible on first login
+    remote_token = RemoteToken.get(user.id, remote_app.client_id)
+    if is_first_login:
+        account_setup_received.send(
+            remote_app,
+            token=remote_token,
+            response=token,
+            account_setup=user_info.extra_data,
+        )
+
+    db.session.commit()
+
+    if is_first_login:
+        # Send the "account setup committed" signal as backwards-compatible as possible
+        account_setup_committed.send(remote_app, token=remote_token)
+
+    return user

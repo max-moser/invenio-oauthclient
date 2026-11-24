@@ -49,7 +49,7 @@ invenio_oauth_remote_token = "invenio_oauthclient.admin:remote_token_adminview"
 invenio_oauthclient = "invenio_oauthclient:InvenioOAuthClientREST"
 
 [project.entry-points."invenio_base.api_blueprints"]
-# invenio_oauthclient_rest = "invenio_oauthclient.views.client:rest_blueprint"
+invenio_oauthclient_rest = "invenio_oauthclient.views:rest_blueprint"
 
 [project.entry-points."invenio_base.apps"]
 invenio_oauthclient = "invenio_oauthclient:InvenioOAuthClient"

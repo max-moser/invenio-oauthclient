@@ -3,10 +3,12 @@
 
 """Blueprints for oauthclient."""
 
+from .rest import rest_blueprint
 from .settings import blueprint as settings_blueprint
 from .ui import ui_blueprint
 
 blueprints = [
+    rest_blueprint,
     settings_blueprint,
     ui_blueprint,
 ]
