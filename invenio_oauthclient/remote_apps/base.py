@@ -57,7 +57,10 @@ class RemoteApp(ABC):
             self.client_kwargs.update(self.server_metadata.pop("client_kwargs", {}))
 
     def register(self, oauth: OAuth) -> FlaskOAuth2App:
-        # TODO use server_metadata if not server_metadata_url
+        # Drop unset metadata values so that, e.g., an empty ``userinfo_endpoint``
+        # default does not get spread into ``oauth.register`` (which would break
+        # ``client.userinfo()`` on providers using fixed ``server_metadata``).
+        metadata = {key: value for key, value in self.server_metadata.items() if value}
         self.client = oauth.register(
             self.name,
             overwrite=False,
@@ -69,7 +72,7 @@ class RemoteApp(ABC):
                 **self.client_kwargs,
             },
             compliance_fix=self.register_compliance_fixes,
-            **self.server_metadata,
+            **metadata,
         )
         return self.client
 

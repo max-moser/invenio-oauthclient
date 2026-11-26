@@ -21,7 +21,7 @@ class OIDCRemoteApp(RemoteApp):
             return {}
 
     def parse_user_info(self, id_token: dict, extra_user_info: dict) -> UserInfo:
-        email = id_token.get("email") or extra_user_info["email"]
+        email = id_token.get("email") or extra_user_info.get("email") or ""
         full_name = id_token.get("name") or extra_user_info.get("name")
         username = id_token.get("preferred_username") or extra_user_info.get(
             "preferred_username"
@@ -39,7 +39,7 @@ class OIDCRemoteApp(RemoteApp):
                 "affiliations": affiliations,
             },
         }
-        external_id = id_token.get("sub") or extra_user_info["sub"]
+        external_id = id_token.get("sub") or extra_user_info.get("sub") or ""
         external_method = self.name
         extra_data = {}
 
